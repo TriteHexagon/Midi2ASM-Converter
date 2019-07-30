@@ -4,7 +4,8 @@ A simple tool to convert MIDI files into pokecrystal-based music files, written 
 ## Features
 * Converts the notes in the MIDI file into the note commands in pokecrystal (including rests).
 * Detects velocity changes in the MIDI and translates that into intensity.
-* Detects changes in the notetype.
+* Detects changes in the notetype (most of the time).
+* The output file is ready to play.
 
 ## How to Use
 * Compile the tool from the .cs file or download the .zip. It contains the compiled executable, an example midi.txt file and a readme.txt file.
@@ -13,7 +14,7 @@ A simple tool to convert MIDI files into pokecrystal-based music files, written 
 * The MIDI needs to be have precisely 4 or less tracks: Pulse 1 in Track 0, Pulse 2 in Track 1, Wave in Track 4 and Noise in Track 3. I recommend using AnvilStudio to delete and rearrange the tracks and MIDIEditor to switch notes between tracks if needed.
 * **Make sure each track only has a single note playing at the same time**, otherwise the tool will not work correctly.
 ### Convert into a .txt file
-* Go to [this site](http://flashmusicgames.com/midi/mid2txt.php) and upload your MIDI track. **Make sure you select the Delta timestamp option**. After the site converts your MIDI file into text, copy it and save into a file named midi.txt.
+* Go to [this site](http://flashmusicgames.com/midi/mid2txt.php) and upload your MIDI track. **Make sure you select the Delta timestamp option**. After the site converts your MIDI file into text, copy it and save into a file named *midi.txt*.
 ### Convert into ASM
 * Place your midi.txt file into the same folder as the MIDI2ASM executable.
 * Run the executable. A command line will pop up so be prepared.
@@ -23,3 +24,5 @@ A simple tool to convert MIDI files into pokecrystal-based music files, written 
 *
 
 ## Missing Features / Improvements / Known quirks
+* The notetype issue. If anyone has any ideas, feel free to it me up on Discord (TriteHexagon#8508).
+* Read directly from a MIDI file.
