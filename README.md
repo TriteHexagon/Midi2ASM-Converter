@@ -1,15 +1,15 @@
 # Midi2ASM Converter
-A simple tool to convert MIDI files into pokecrystal-based music files, written in C#. The idea was to improve upon FroggestSpirit's similar tool: convert the notes and other commands into the current command format, fix errors and add features.
+A simple tool to convert MIDI files into pokecrystal-based music files, written in C#. As someone who's knee-deep into making chiptune music using the pokecrystal / GameBoy engine, I know how important the current tool by FroggestSpirit is and also how frustrating it can be to arrange some songs using it. It's a good first step, but I felt it was time I fixed some of the problems with it, including the fact that its command format is no longer supported. And so I decided to learn C# and make my own tool from scratch. The idea was to do the same thing as FroggestSpirit's MIDI converter does, but add and improve the note conversion process, as well as add new features.
 
 ## Features
-* Converts the notes in the MIDI file into the note commands in pokecrystal (including rests).
-* Detects velocity changes in the MIDI and translates that into intensity.
+* Converts the notes in the MIDI file into the note commands used in pokecrystal (including rests).
+* Detects velocity changes in the MIDI and translates them into intensity when needed.
 * Detects changes in the notetype (most of the time).
-* The output file is ready to play.
+* The output file is ready to play so you can plop it into the game without much effort.
 
 ## How to Use
-* Compile the tool from the .cs file or download the .zip. It contains the compiled executable, an example midi.txt file and a readme.txt file.
-* The following instructions assume you already know how to put a custom music into pokecrystal (and likely have used FroggestSpirt's tool to do so). If you don't, you can follow [this guide](https://github.com/pret/pokecrystal/wiki/Add-a-new-music-song)
+* Compile the tool from the .cs file or, alternatively, download the .zip. It contains the compiled executable, an example midi.txt file and a readme.txt file.
+* The following instructions assume you already know how to put a custom music into pokecrystal. If you don't, you can follow [this guide](https://github.com/pret/pokecrystal/wiki/Add-a-new-music-song).
 ### Prepare your MIDI
 * The MIDI needs to be have precisely 4 or less tracks: Pulse 1 in Track 0, Pulse 2 in Track 1, Wave in Track 4 and Noise in Track 3. I recommend using AnvilStudio to delete and rearrange the tracks and MIDIEditor to switch notes between tracks if needed.
 * **Make sure each track only has a single note playing at the same time**, otherwise the tool will not work correctly.
@@ -24,5 +24,13 @@ A simple tool to convert MIDI files into pokecrystal-based music files, written 
 *
 
 ## Missing Features / Improvements / Known quirks
-* The notetype issue. If anyone has any ideas, feel free to it me up on Discord (TriteHexagon#8508).
+* 
 * Read directly from a MIDI file.
+
+## How it works
+*
+
+## Can I help?
+* **YES**. I do have basic training in programming, but this is, technically, my first foray into an actual, useful language. As such, I gurantee that the code is probably awful. For that reason alone, feel free to suggest changes that make the code cleaner or fixes potential quirks with it.
+
+* Other than that, the logic behind the notetypes is still tripping me up. If someone finds a fix for it, I'd greatly appreciate it.
