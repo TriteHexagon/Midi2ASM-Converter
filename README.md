@@ -13,7 +13,7 @@ This is a simple tool to convert MIDI files into [pokecrystal](https://github.co
 * The intention is to save arrangers time doing the boring parts, such as fixing triplets, short notes and intensity changes, and focusing on making the music sound as good as possible.
 
 ## Instructions
-* Compile the tool from the .cs file (the debug mode is on be default) or, alternatively, download this .zip file. It contains the two compiled executables (a normal and a debug version), an example midi.txt file and a readme.txt file.
+* Compile the tool from the .cs file (the debug mode is on be default) or, alternatively, [download this .zip file](https://drive.google.com/file/d/1wsiSDGOnDmAo-4-T8Ay5063SioqRAGW6/view?usp=sharing). It contains the two compiled executables (a normal and a debug version), an example midi.txt file and this readme.
 * The following instructions won't go into how to put custom music into pokecrystal. If you don't know how to do it, you can follow [this guide](https://github.com/pret/pokecrystal/wiki/Add-a-new-music-song).
 #### Prepare your MIDI
 * The MIDI needs to be have precisely 4 or less tracks: Pulse 1 in Track 0, Pulse 2 in Track 1, Wave in Track 4 and Noise in Track 3. I recommend using AnvilStudio to delete and rearrange the tracks and MIDIEditor to switch notes between tracks if needed.
