@@ -10,7 +10,7 @@ This is a simple tool to convert MIDI files into [pokecrystal](https://github.co
 
 ## What it doesn't do
 * **This tool is not intended to directly convert a MIDI into GameBoy music**. The output files *will* work, but they will sound bad because of syncing issues between the tracks (more on that later).
-* The intention is to save arrangers time in doing the boring parts, such as fixing triplets, short notes and intensity changes, and focusing on making the music sound as good as possible.
+* The intention is to save arrangers time doing the boring parts, such as fixing triplets, short notes and intensity changes, and focusing on making the music sound as good as possible.
 
 ## Instructions
 * Compile the tool from the .cs file or, alternatively, download this .zip file. It contains the two compiled executables (a normal and a debug version), an example midi.txt file and a readme.txt file.
