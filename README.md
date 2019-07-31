@@ -30,10 +30,9 @@ This is a simple tool to convert MIDI files into [pokecrystal](https://github.co
 * I have confidence the note conversion works correctly. However, notetype changes are really tricky to do automatically. It works most of the time, but one badly translated note duration is enough to make the tracks not sync up properly.
 * After the output file is written, the command line will have the total length of each track, along with the length they *all* should have. If these numbers don't match exactly, this means some rounding error made some notes shorter or longer than they should be. Even still, it's possible that the rounding errors cancel each other out and the tracks won't sync up in a specific section. I know it's a pain but that's the best I can do right now.
 * In conclusion, you'll have to listen to the music and try to figure out which notes might be off.
-#### Debug Version
-* The debug version helps you figure out which notes need to be fixed.
-* It prints out the note duration in ticks and a warning as a comment in front of the note, in case the program had to round that note's duration. These are likely the notes giving you problems, so you can use this version to easily find the faulty notes.
-* I go into more detail about how to use the debug version in the.
+#### Debug Mode
+* The Debug Mode helps you figure out which notes need to be fixed.
+* You can learn more on how to use the debug mode [here](https://github.com/TriteHexagon/Midi2ASM-Converter/blob/master/DEBUG.md).
 
 ## Known quirks
 * If the noise channel actually needs rests (for example, entire bars), it will simply repeat the last note detected for that entire duration.
