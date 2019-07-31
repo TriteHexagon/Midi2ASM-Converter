@@ -1,18 +1,18 @@
 # Midi2ASM Converter
-This is a simple tool to convert MIDI files into [pokecrystal](https://github.com/pret/pokecrystal)-based music, written in C#. As someone who's already [knee-deep into making chiptune music](https://soundcloud.com/user-930339535/sets/all-demixes) using the pokecrystal / GameBoy engine, I know how important the current tool made by FroggestSpirit is and also how frustrating it can be to arrange some songs using it. It's a good first step, but I felt it was time I fixed some of the problems with it, including the annoying fact that its output format is no longer supported. The idea was to do the same thing as the current MIDI converter already does, but add and improve the note conversion process, as well as add new features.
+This is a simple tool to convert MIDI files into [pokecrystal](https://github.com/pret/pokecrystal)-based music, written in C#. As someone who's already [knee-deep into making chiptune music](https://soundcloud.com/user-930339535/sets/all-demixes) using the pokecrystal / GameBoy engine, I know how important the current tool made by FroggestSpirit is and also how frustrating it can be to arrange some songs using it. It's a good first step, but I felt I could write my own tool and fix the current problems with it, including the annoying fact that its output format is no longer supported, and add new features as well.
 
 ## Features
 * Converts the notes in the MIDI file into the note commands used in pokecrystal (including rests).
 * Detects velocity changes in the MIDI and translates them into intensity when needed.
 * Detects changes in the notetype.
 * Prints out comments with the bars so you can easily navigate the notes.
-* The output file is ready to play so you can plop it into the game without much effort.
+* The output file is almost ready to play so you can plop it into the game without much effort.
 
 ## What it doesn't do
-* This tool is not intended to directly convert a MIDI into GameBoy music. The output files *will* work, but they will sound bad because of syncing issues (more on that later).
+* **This tool is not intended to directly convert a MIDI into GameBoy music**. The output files *will* work, but they will sound bad because of syncing issues between the tracks (more on that later).
 * The intention is to save arrangers time in doing the boring parts, such as fixing triplets, short notes and intensity changes, and focusing on making the music sound as good as possible.
 
-## How to Use
+## Instructions
 * Compile the tool from the .cs file or, alternatively, download this .zip file. It contains the two compiled executables (a normal and a debug version), an example midi.txt file and a readme.txt file.
 * The following instructions won't go into how to put custom music into pokecrystal. If you don't know how to do it, you can follow [this guide](https://github.com/pret/pokecrystal/wiki/Add-a-new-music-song).
 #### Prepare your MIDI
@@ -42,5 +42,6 @@ This is a simple tool to convert MIDI files into [pokecrystal](https://github.co
 
 ## Can I help?
 * **YES**. I do have basic training in programming, but this is, technically, my first foray into an actual, useful programming language. As such, I guarantee that the code is awful. For that reason alone, feel free to suggest changes to make the code cleaner or fixes.
+* Feel free to leave feedback wherever I might see it.
 
 > TriteHexagon. Updated on 31/7/2019
