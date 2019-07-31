@@ -43,7 +43,7 @@ This is a simple tool to convert MIDI files into [pokecrystal](https://github.co
 * Loops, seeing as some MIDIs have loop information integrated.
 
 ## Can I help?
-* YES! I do have basic training in programming, but this is, technically, my first foray into an actual programming language. As such, I guarantee that the code is awful. For that reason alone, feel free to suggest changes to make the code cleaner or suggest fixes.
+* YES! This is, technically, my first foray into an actual programming language. As such, I guarantee that the code is awful. For that reason alone, feel free to suggest changes to make the code cleaner or suggest fixes.
 * Feel free to leave feedback wherever I might see it.
 
 > TriteHexagon. Updated on 31/7/2019
