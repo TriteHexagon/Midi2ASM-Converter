@@ -1,0 +1,1 @@
+* To do this, you need a value printed in the command line called **Ticks per Beat (TpB)**, which is how many "ticks" fit into a beat in the MIDI. You can convert this number into what I call the **Unitary Length (UL)** by using the following formula: UL = TpB * Notetype / 48. This is how much you have to divide the note length in the MIDI
