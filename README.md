@@ -40,6 +40,7 @@ This is a simple tool to convert MIDI files into [pokecrystal](https://github.co
 ## Missing Features / Improvements 
 * Read directly from a MIDI file. I'm not planning on doing this any time soon, seeing as it works fine at the moment and it would be a ton of work to implement.
 * A mode to make the noise channel print temporary, easily repalceable notes instead of the normal notes. This is because, by experience, the notes that are present in the MIDI rarely translate to any of the existing drumkits, so I always have to manually change the notes. This mode would make that a bit easier and also prevent situations where the MIDI has different percussion in different ocatve, which naturally isn't how the noise channel works.
+* Loops, seeing as some MIDIs have loop information integrated.
 
 ## Can I help?
 * **YES**. I do have basic training in programming, but this is, technically, my first foray into an actual, useful programming language. As such, I guarantee that the code is awful. For that reason alone, feel free to suggest changes to make the code cleaner or fixes.
