@@ -21,6 +21,8 @@ namespace MIDI_Converter
         int noteLength;
         int restLength;
         int tempLength;
+        int checkLength;
+        int totalLength; //the sum of noteLength and restLength. Useful to NOT print an error in the debugging mode in case the sum fits the notetype
         int noteLengthFinal;
         int velocity;
         int intIntensity;
@@ -33,6 +35,8 @@ namespace MIDI_Converter
         int[] TickSum; //stores the tick length; useful for debugging
         string[] notesArray;
         bool debug;
+        bool warning;
+        bool flagOn;
 
         public Program()
         {
@@ -48,6 +52,8 @@ namespace MIDI_Converter
             pos = 0;
             noteLength = 0;
             restLength = 0;
+            tempLength = 0;
+            totalLength = 0;
             noteLengthFinal = 0;
             velocity = 0;
             newIntensity = "0";
@@ -57,7 +63,8 @@ namespace MIDI_Converter
             TickSum = new int[] { 0, 0, 0, 0 };
             notesArray = new string[] {"__", "C_", "C#", "D_", "D#", "E_", "F_", "F#", "G_", "G#", "A_", "A#", "B_"};
             allowedNotetypes = new int[] {6, 8, 12};
-            debug = true;
+            debug = false;
+            warning = true;
         }
 
         public void BarWriter(StreamWriter sw)
@@ -76,18 +83,17 @@ namespace MIDI_Converter
             
         public void NotetypeChange(StreamWriter sw)
         {
-            newNotetype = 12; //resets notetype every time
-
+            newNotetype = 12; //always tries to change the notetype to 12; this isn't ideal but works fine for now
             unitaryLength = Convert.ToInt32((double)TicksPerBeat * newNotetype / 48);
             //checks if there's need to change the notetype i.e. if remainder of the division by the unitary length is not 0
-            notetypeCheck = Convert.ToInt32((double)(tempLength % unitaryLength));
+            notetypeCheck = Convert.ToInt32((double)(checkLength % unitaryLength));
 
             pos = 0;
             while (notetypeCheck != 0 & pos < allowedNotetypes.Length)
             {
                 newNotetype=allowedNotetypes[pos];
                 unitaryLength = Convert.ToInt32((double)TicksPerBeat * newNotetype / 48);
-                notetypeCheck = tempLength % unitaryLength;
+                notetypeCheck = checkLength % unitaryLength;
                 pos++;
             }
 
@@ -108,11 +114,34 @@ namespace MIDI_Converter
                     sw.WriteLine();
                 }
             }
+
+            //makes sure that no warning needs to be printed in case the totalLength is itself divisible by the notetype
+            if (totalLength != 0 & (totalLength % unitaryLength)==0)
+            {
+                warning = false;
+            }
         }
 
         public void NotePrinter(StreamWriter sw)
         {
-            while (noteLengthFinal > 16)
+            if (noteLengthFinal == 0 & checkLength!=0) //makes sure actual zeros are zeros
+            {
+                sw.Write("\t;note ");
+                sw.Write(notesArray[notePosition]);
+                sw.Write(", ");
+                sw.Write(0);
+                sw.Write(" | ");
+                sw.Write(" WARNING: Rounded to 0");
+                if (debug)
+                {
+                    sw.Write(" | Ticks:");
+                    sw.Write(checkLength);
+                }
+                sw.WriteLine("");
+                goto End;
+            }
+
+            while (noteLengthFinal >= 16)
             {
                 sw.Write("\tnote ");
                 sw.Write(notesArray[notePosition]);
@@ -127,21 +156,26 @@ namespace MIDI_Converter
                 sw.Write(notesArray[notePosition]);
                 sw.Write(", ");
                 sw.Write(noteLengthFinal);
-                if (notetypeCheck != 0 & debug==true)
+                if (notetypeCheck != 0 & warning==true)
                 {
                     sw.Write(" ;");
-                    sw.Write(tempLength);
                     sw.Write(" WARNING: Rounded");
+                    if (debug)
+                    {
+                        sw.Write(" | Ticks:");
+                        sw.Write(checkLength);
+                    }
                 }
                 sw.WriteLine("");
             }
+        End:;
         }
 
         public void RestWriter(StreamWriter sw)
         {
             //writes the Bar again
             BarWriter(sw);
-            tempLength = restLength;
+            checkLength = restLength;
             NotetypeChange(sw);
             noteLengthFinal = Convert.ToInt32(Math.Round((double)restLength / unitaryLength));
             //writes the rest
@@ -155,15 +189,11 @@ namespace MIDI_Converter
         {
             BarWriter(sw);
 
-            tempLength = noteLength;
-            NotetypeChange(sw);
-            noteLengthFinal = Convert.ToInt32(Math.Round((double)noteLength / unitaryLength));
-
             //calculates the intensity of the note and checks if it needs to be changed
             intIntensity = Convert.ToInt32(Math.Round((double)(trackVolume * velocity) / 1075));
             newIntensity = intIntensity.ToString("X"); //converts intensity value into hexadecimal
 
-            if (newIntensity != intensity & Track <3) //doesn't calculate the intensity for Tracks 3 and 4
+            if (newIntensity != intensity & Track < 3) //doesn't calculate the intensity for Tracks 3 and 4
             {
                 sw.Write("\tintensity $");
                 sw.Write(newIntensity);
@@ -171,11 +201,15 @@ namespace MIDI_Converter
                 intensity = newIntensity;
             }
 
+            checkLength = noteLength;
+            NotetypeChange(sw);
+            noteLengthFinal = Convert.ToInt32(Math.Round((double)noteLength / unitaryLength));
+
             //changes Octave
             newOctave = Convert.ToInt32(Math.Floor((double)(note / 12 - 1)));
             if (newOctave != octave & Track!=4) //doesn't change the octave for Track 4
             {
-                sw.WriteLine("\toctave {0}", newOctave-1); //the octave appears to be always 1 lower than in the GB
+                sw.WriteLine("\toctave {0}", newOctave-1); //the octave appears to be always 1 lower in the ASM
                 octave = newOctave;
             }
             //calculates note length
@@ -220,7 +254,7 @@ namespace MIDI_Converter
             //Header
             sw.WriteLine(";Coverted using MIDI2ASM");
             sw.WriteLine(";Coded by TriteHexagon.");
-            sw.WriteLine(";Version 1.0. (31/7/2019)");
+            sw.WriteLine(";Version 1.1. (3-Aug-2019)");
             sw.WriteLine(";https://github.com/TriteHexagon/Midi2ASM-Converter");
             sw.WriteLine("");
             sw.WriteLine("; ============================================================================================================");
@@ -235,6 +269,7 @@ namespace MIDI_Converter
             if(debug)
             {
                 Console.WriteLine("DEBUG MODE");
+                Console.WriteLine();
             }
             
 
@@ -244,53 +279,61 @@ namespace MIDI_Converter
                 //Splits the string line into multiple elements
                 string[] lineString = line.Split(' ');
 
-                if (lineString.Length == 1)
-                {
-                    if (lineString[0] == "MTrk")
-                    {
-                        Track++;
-                        bar = 0;
-                        octave = -1; //resets octave for the new track
-                        trackVolume = 0; //resets trackvolume for the new track
-                        notetype = 12;
-                        newNotetype = 12;
-                        sw.WriteLine("Music_Template_Ch{0}:", Track);
-                        //writes the rest of the header
-                        switch (Track)
-                        {
-                            case 1:
-                                sw.WriteLine("\tvolume $77");
-                                sw.WriteLine("\tdutycycle $2");
-                                sw.Write("\tnotetype {0}", notetype);
-                                sw.WriteLine(", $A7");
-                                break;
-                            case 2:
-                                sw.WriteLine("\tdutycycle $1");
-                                sw.Write("\tnotetype {0}", notetype);
-                                sw.WriteLine(", $A7");
-                                break;
-                            case 3:
-                                sw.Write("\tnotetype {0}", notetype);
-                                sw.WriteLine(", $10");
-                                break;
-                            case 4:
-                                sw.WriteLine("\ttogglenoise 1 ; WARNING: this will sound bad. Change.");
-                                sw.Write("\tnotetype {0}", notetype);
-                                sw.WriteLine();
-                                break;
-                            default:
-                                Console.WriteLine("Houston, we have a problem.");
-                                break;
-                        }
-                    }
-                    continue;
-                }
-
                 //finds the TicksPerBeat of the MIDI file
                 if (lineString[0] == "MFile")
                 {
                     TicksPerBeat = Int32.Parse(lineString[3]);
+                    if (debug)
+                    {
+                        sw.WriteLine(";Ticks Per Beat: {0}", TicksPerBeat);
+                        sw.WriteLine();
+                    }
                     unitaryLength = Convert.ToInt32((double)TicksPerBeat / (48 / newNotetype));
+                    continue;
+                }
+
+                if (lineString[0] == "MTrk")
+                {
+                    Track++;
+                    bar = 0;
+                    octave = -1; //resets octave for the new track
+                    trackVolume = 0; //resets trackvolume for the new track
+                    notetype = 12;
+                    newNotetype = 12;
+                    sw.WriteLine("Music_Template_Ch{0}:", Track);
+                    //writes the rest of the header
+                    switch (Track)
+                    {
+                        case 1:
+                            sw.WriteLine("\tvolume $77");
+                            sw.WriteLine("\tdutycycle $2");
+                            sw.Write("\tnotetype {0}", notetype);
+                            sw.WriteLine(", $A7");
+                            break;
+                        case 2:
+                            sw.WriteLine("\tdutycycle $1");
+                            sw.Write("\tnotetype {0}", notetype);
+                            sw.WriteLine(", $A7");
+                            break;
+                        case 3:
+                            sw.Write("\tnotetype {0}", notetype);
+                            sw.WriteLine(", $10");
+                            break;
+                        case 4:
+                            sw.WriteLine("\ttogglenoise 1 ; WARNING: this will sound bad. Change.");
+                            sw.Write("\tnotetype {0}", notetype);
+                            sw.WriteLine();
+                            break;
+                        default:
+                            Console.WriteLine("Houston, we have a problem.");
+                            break;
+                    }
+                    continue;
+                }
+
+                if (lineString.Length < 2)
+                {
+                    continue;
                 }
 
                 //finds the Tempo of the MIDI file and converts to ASM tempo
@@ -298,32 +341,36 @@ namespace MIDI_Converter
                 {
                     Tempo = Int32.Parse(lineString[2]) / 3138;
                     sw.WriteLine("\ttempo {0}", Tempo);
+                    continue;
                 }
 
+                if (lineString[2] == "TrkEnd")
+                {
+                    restLength = Int32.Parse(lineString[0]);
+                    if (restLength > unitaryLength) //the noise channel needs the last rest
+                    {
+                        totalLength = noteLength + restLength;
+                        NoteWriter(sw);
+                        RestWriter(sw);
+                    }
+                    else
+                    {
+                        noteLength += restLength;
+                        NoteWriter(sw);
+                    }
+                    noteLength = 0;
+                    restLength = 0;
+                    note = -1;
+                    notePosition = 0;
+                    sw.WriteLine("\tendchannel");
+                    sw.WriteLine("");
+                    sw.WriteLine("; ============================================================================================================");
+                    sw.WriteLine("");
+                }
+
+                //avoid entering the main note printer part since the lineString is shorter and the program breaks
                 if (lineString.Length < 4)
                 {
-                    if (lineString[2] == "TrkEnd")
-                    {
-                        restLength = Int32.Parse(lineString[0]);
-                        if (restLength > unitaryLength) //the noise channel needs the last rest
-                        {
-                            NoteWriter(sw);
-                            RestWriter(sw);
-                        }
-                        else
-                        {
-                            noteLength += restLength;
-                            NoteWriter(sw);
-                        }
-                        noteLength = 0;
-                        restLength = 0;
-                        note = -1;
-                        notePosition = 0;
-                        sw.WriteLine("\tendchannel");
-                        sw.WriteLine("");
-                        sw.WriteLine("; ============================================================================================================");
-                        sw.WriteLine("");
-                    }
                     continue;
                 }
 
@@ -347,46 +394,71 @@ namespace MIDI_Converter
                     sw.WriteLine(string.Concat("\tstereopanning $", panHex));
                 }
 
-                //sets new trackvolume to define the intensity of this track
+                //sets new trackvolume to define the intensity of this track. Can vary multiple times during the same music.
                 if (lineString[3] == "c=7")
                 {
                     string[] tempString = lineString[4].Split('=');
                     trackVolume = Int32.Parse(tempString[1]);
                 }
 
-                if (Int32.TryParse(lineString[0], out restLength)) //checks if the first part of the string is a number and saves it to restLength
+                if (Int32.TryParse(lineString[0], out tempLength)) //checks if the first part of the string is a number and saves it to restLength
                 {
-                    if (lineString[1] != "On")
-                    {
-                        noteLength += restLength;
-                        continue;
-                    }
+                    totalLength = noteLength + tempLength;
 
-                    if (lineString[1] == "On")
+                    //prints the currently "saved" note
+                    switch (lineString[1])
                     {
-                        if (note==-1) //prints the first rest in case it exists i.e. if the note is -1. The NotePrinter guarantees it doesn't print a 0. Also works on Track 4.
+                        case "On":
                         {
-                            restLength += noteLength;
-                            RestWriter(sw);
-                        }
-                        else if ((restLength > unitaryLength & Track!=4)) //the noise channel doesn't need rests
-                        {
-                            NoteWriter(sw);
-                            RestWriter(sw);
-                        }
-                        else
-                        {
-                            noteLength += restLength;
-                            NoteWriter(sw);
-                        }
-                        noteLength = 0;
-                        restLength = 0;
+                            restLength += tempLength;
+                            flagOn = true;
+                            if (note==-1) //prints the first rest in case it exists i.e. if the note is -1. The NotePrinter guarantees it doesn't print a 0. Also works on Track 4.
+                            {
+                                restLength += noteLength;
+                                RestWriter(sw);
+                            }
+                            else if ((restLength > unitaryLength & Track!=4) || (restLength > unitaryLength*16)) //the noise channel only prints rests if its bigger than 16 times the UL
+                            {
+                                NoteWriter(sw);
+                                RestWriter(sw);
+                            }
+                            else
+                            {
+                                noteLength += tempLength;
+                                NoteWriter(sw);
+                            }
+                            noteLength = 0;
+                            restLength = 0;
+                            tempLength = 0;
 
-                        string[] tempString = lineString[3].Split('=');
-                        note = Int32.Parse(tempString[1]);
-                        string[] tempString2 = lineString[4].Split('=');
-                        velocity = Int32.Parse(tempString2[1]);
+                            //setup for the next note
+                            string[] tempString = lineString[3].Split('=');
+                            note = Int32.Parse(tempString[1]);
+                            string[] tempString2 = lineString[4].Split('=');
+                            velocity = Int32.Parse(tempString2[1]);
+                            totalLength = 0;
+                            break;
+                        }
+                        case "Off":
+                        {
+                            flagOn = false;
+                            noteLength += tempLength;
+                            break;
+                        }
+                        default:
+                        {
+                            if (flagOn==false & tempLength > unitaryLength)
+                            {
+                                restLength += tempLength;
+                            }
+                            else
+                            {
+                                noteLength += tempLength;
+                            }  
+                            break;
+                        }
                     }
+                    warning = true;
                 }
                 counter++;
             }
@@ -394,7 +466,6 @@ namespace MIDI_Converter
             file.Close();
 
             sw.Close();
-            Console.WriteLine();
             Console.WriteLine("CONVERSION SUCCESSFUL!");
             Console.WriteLine("There were {0} lines.", counter);
             Console.WriteLine();
