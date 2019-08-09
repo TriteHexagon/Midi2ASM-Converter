@@ -17,7 +17,8 @@ This is a simple tool to convert MIDI files into [pokecrystal](https://github.co
 * The following instructions won't go into how to put custom music into pokecrystal. If you don't know how to do it, you can follow [this guide](https://github.com/pret/pokecrystal/wiki/Add-a-new-music-song).
 #### Prepare your MIDI
 * The MIDI needs to be have precisely 4 or less tracks: Pulse 1 in Track 0, Pulse 2 in Track 1, Wave in Track 4 and Noise in Track 3. I recommend using AnvilStudio to delete and rearrange the tracks and MIDIEditor to switch notes between tracks if needed.
-* **Make sure each track only has a single note playing at the same time**, otherwise the tool will not work correctly.
+* AnvilStudio also has a feature to tracks with multiple channels into separate tracks; you can use this in case you have all your notes in the same track. Please note that this creates a "phantom" Track 0 that needs to be deleted. You can easily do this in the text file, just delete everything from the first "MTrk" to "TrkEnd". This track usually has the tempo, so copy that line and place it in the beginning of the next track so the program can detect the tempo.
+* **It is recommended that you only have one note playing at the same time in each track**, but it doesn't necessarily mean the tool won't work. If the notes start at the same time, only one of them will be considered. If one starts as the previous is still playing, the first one will end and the new one will play again. This latter feature is particularly useful for the noise channel, so feel free to keep all the notes and see where it gets you.
 #### Convert into a .txt file
 * Go to [this site](http://flashmusicgames.com/midi/mid2txt.php) and upload your MIDI track. **Make sure you select the Delta timestamp option**.
 * After the MIDI file is converted into text, copy it and sve to a file named *midi.txt*.
@@ -53,4 +54,4 @@ This is a simple tool to convert MIDI files into [pokecrystal](https://github.co
 * YES! This is, technically, my first foray into an actual programming language. As such, I guarantee that the code is awful. For that reason alone, feel free to suggest changes to make the code cleaner or suggest fixes.
 * Feel free to leave feedback wherever I might see it.
 
-> TriteHexagon. Updated on 3-Aug-2019
+> TriteHexagon. Updated on 9-Aug-2019
