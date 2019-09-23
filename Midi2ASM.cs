@@ -22,7 +22,7 @@ namespace MIDI_Converter
         int restLength;
         int tempLength;
         int checkLength;
-        int totalLength; //the sum of noteLength and restLength. Useful to NOT print an error in the debugging mode in case the sum fits the notetype
+        int totalLength; //the sum of noteLength and restLength.
         int noteLengthFinal;
         int velocity;
         int intIntensity;
@@ -32,15 +32,18 @@ namespace MIDI_Converter
         int newOctave;
         int notePosition;
         int[] LengthSum; //stores the track length in ASM units i.e. notetype * note length
-        int[] TickSum; //stores the tick length; useful for debugging
+        int[] TickSum; //stores the tick length
         string[] notesArray;
-        bool debug;
+        string[] noiseArray;
+        string panHex;
+        string newpanHex;
+        bool TempoTrack;
+        bool noiseReplace;
         bool warning;
         bool flagOn;
 
         public Program()
         {
-            Track = 0;
             bar = 0;
             newBar = 0;
             unitaryLength = 0;
@@ -62,8 +65,8 @@ namespace MIDI_Converter
             LengthSum = new int[] { 0, 0, 0, 0 };
             TickSum = new int[] { 0, 0, 0, 0 };
             notesArray = new string[] {"__", "C_", "C#", "D_", "D#", "E_", "F_", "F#", "G_", "G#", "A_", "A#", "B_"};
-            allowedNotetypes = new int[] {6, 8, 12};
-            debug = false;
+            noiseArray = new string[] { "__", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "XA", "XB", "XC" };
+            allowedNotetypes = new int[] {6, 8, 12}; //the program won't do any more precise than notetype 6
             warning = true;
         }
 
@@ -127,16 +130,11 @@ namespace MIDI_Converter
             if (noteLengthFinal == 0 & checkLength!=0) //makes sure actual zeros are zeros
             {
                 sw.Write("\t;note ");
-                sw.Write(notesArray[notePosition]);
+                NotesAndNoiseArray(sw);
                 sw.Write(", ");
                 sw.Write(0);
                 sw.Write(" | ");
-                sw.Write(" WARNING: Rounded to 0");
-                if (debug)
-                {
-                    sw.Write(" | Ticks:");
-                    sw.Write(checkLength);
-                }
+                sw.Write(" WARNING: Rounded down to 0");
                 sw.WriteLine("");
                 goto End;
             }
@@ -144,7 +142,7 @@ namespace MIDI_Converter
             while (noteLengthFinal >= 16)
             {
                 sw.Write("\tnote ");
-                sw.Write(notesArray[notePosition]);
+                NotesAndNoiseArray(sw);
                 sw.Write(", ");
                 sw.WriteLine(16);
                 noteLengthFinal -= 16;
@@ -153,24 +151,31 @@ namespace MIDI_Converter
             if (noteLengthFinal > 0)
             {
                 sw.Write("\tnote ");
-                sw.Write(notesArray[notePosition]);
+                NotesAndNoiseArray(sw);
                 sw.Write(", ");
                 sw.Write(noteLengthFinal);
                 if (notetypeCheck != 0 & warning==true)
                 {
                     sw.Write(" ;");
-                    sw.Write(" WARNING: Rounded");
-                    if (debug)
-                    {
-                        sw.Write(" | Ticks:");
-                        sw.Write(checkLength);
-                    }
+                    sw.Write(" WARNING: Rounded.");
                 }
                 sw.WriteLine("");
             }
         End:;
         }
 
+        public void NotesAndNoiseArray(StreamWriter sw)
+        {
+            if (Track == 4 & noiseReplace) //checks if the noise replace mode is true
+            {
+                sw.Write(noiseArray[notePosition]);
+            }
+            else
+            {
+                sw.Write(notesArray[notePosition]);
+            }
+        }
+     
         public void RestWriter(StreamWriter sw)
         {
             //writes the Bar again
@@ -227,9 +232,11 @@ namespace MIDI_Converter
             int counter = 0;
             int Tempo = 0;
             int pan = 0;
-            string panHex = "ff";
             string line;
-            
+
+            Console.WriteLine("MIDI2ASM Version 2.0");
+            Console.WriteLine("");
+
             //Gets the current directory of the application.
             string path = Directory.GetCurrentDirectory();
 
@@ -239,6 +246,47 @@ namespace MIDI_Converter
                 FileStream fileStream = File.Open(string.Concat(path, "\\out.asm"), FileMode.Open);
                 fileStream.SetLength(0);
                 fileStream.Close();
+            }
+
+            //opens the config.txt file and grabs the
+
+            TempoTrack = true; // if true, then it's the default five-track mode
+            noiseReplace = false;
+
+            if (File.Exists(string.Concat(path, "\\config.txt")))
+            {
+                Console.WriteLine("Settings:");
+                System.IO.StreamReader configFile =
+                    new System.IO.StreamReader(string.Concat(path, "\\config.txt"));
+                line = configFile.ReadLine();
+                string[] lineString = line.Split(' ');
+                Console.WriteLine(line);
+                if (lineString[2] == "false")
+                {
+                    TempoTrack = false;
+                }
+                line = configFile.ReadLine();
+                Console.WriteLine(line);
+                lineString = line.Split(' ');
+                if (lineString[2] == "true")
+                {
+                    noiseReplace = true;
+                }
+                configFile.Close();
+            }
+            else
+            {
+                Console.WriteLine("WARNING: Config file not found. Default settings used.");
+            }
+            Console.WriteLine("");
+
+            if (TempoTrack)
+            {
+                Track = -1;
+            }
+            else
+            {
+                Track = 0;
             }
 
             //opens the midi.txt file
@@ -253,26 +301,19 @@ namespace MIDI_Converter
 
             //Header
             sw.WriteLine(";Coverted using MIDI2ASM");
-            sw.WriteLine(";Coded by TriteHexagon.");
-            sw.WriteLine(";Version 1.1. (3-Aug-2019)");
-            sw.WriteLine(";https://github.com/TriteHexagon/Midi2ASM-Converter");
+            sw.WriteLine(";Version 2.0. (23-Sep-2019)");
+            sw.WriteLine(";Code by TriteHexagon");
+            sw.WriteLine(";Visit github.com/TriteHexagon/Midi2ASM-Converter for up-to-date versions.");
             sw.WriteLine("");
             sw.WriteLine("; ============================================================================================================");
             sw.WriteLine("");
-            sw.WriteLine("Music_Template:");
-            sw.WriteLine("\tmusicheader 4, 1, Music_Template_Ch1");
-            sw.WriteLine("\tmusicheader 1, 2, Music_Template_Ch2");
-            sw.WriteLine("\tmusicheader 1, 3, Music_Template_Ch3");
-            sw.WriteLine("\tmusicheader 1, 4, Music_Template_Ch4");
+            sw.WriteLine("Music_Placeholder:");
+            sw.WriteLine("\tmusicheader 4, 1, Music_Placeholder_Ch1");
+            sw.WriteLine("\tmusicheader 1, 2, Music_Placeholder_Ch2");
+            sw.WriteLine("\tmusicheader 1, 3, Music_Placeholder_Ch3");
+            sw.WriteLine("\tmusicheader 1, 4, Music_Placeholder_Ch4");
             sw.WriteLine("");
-
-            if(debug)
-            {
-                Console.WriteLine("DEBUG MODE");
-                Console.WriteLine();
-            }
             
-
             // Reads the file line by line.
             while ((line = file.ReadLine()) != null)
             {
@@ -283,11 +324,6 @@ namespace MIDI_Converter
                 if (lineString[0] == "MFile")
                 {
                     TicksPerBeat = Int32.Parse(lineString[3]);
-                    if (debug)
-                    {
-                        sw.WriteLine(";Ticks Per Beat: {0}", TicksPerBeat);
-                        sw.WriteLine();
-                    }
                     unitaryLength = Convert.ToInt32((double)TicksPerBeat / (48 / newNotetype));
                     continue;
                 }
@@ -300,15 +336,25 @@ namespace MIDI_Converter
                     trackVolume = 0; //resets trackvolume for the new track
                     notetype = 12;
                     newNotetype = 12;
-                    sw.WriteLine("Music_Template_Ch{0}:", Track);
+                    panHex = "ff";
+                    if (Track > 0)
+                    {
+                        sw.WriteLine("Music_Placeholder_Ch{0}:", Track);
+                    }
                     //writes the rest of the header
                     switch (Track)
                     {
+                        case 0:
+                            break;
                         case 1:
                             sw.WriteLine("\tvolume $77");
                             sw.WriteLine("\tdutycycle $2");
                             sw.Write("\tnotetype {0}", notetype);
                             sw.WriteLine(", $A7");
+                            if (Tempo != 0)
+                            {
+                                sw.WriteLine("\ttempo {0}", Tempo);
+                            }
                             break;
                         case 2:
                             sw.WriteLine("\tdutycycle $1");
@@ -320,13 +366,15 @@ namespace MIDI_Converter
                             sw.WriteLine(", $10");
                             break;
                         case 4:
-                            sw.WriteLine("\ttogglenoise 1 ; WARNING: this will sound bad. Change.");
+                            sw.WriteLine("\ttogglenoise 1 ; WARNING: this will sound bad.");
                             sw.Write("\tnotetype {0}", notetype);
                             sw.WriteLine();
                             break;
                         default:
                             Console.WriteLine("Houston, we have a problem.");
-                            break;
+                            Console.WriteLine("");
+                            Console.WriteLine("Number of tracks exceeded the threshold. Please reduce the number of tracks and try again, or use the TempoTrack mode.");
+                            goto End;
                     }
                     continue;
                 }
@@ -340,11 +388,14 @@ namespace MIDI_Converter
                 if (lineString[1] == "Tempo")
                 {
                     Tempo = Int32.Parse(lineString[2]) / 3138;
-                    sw.WriteLine("\ttempo {0}", Tempo);
+                    if (TempoTrack==false)
+                    {
+                        sw.WriteLine("\ttempo {0}", Tempo);
+                    }
                     continue;
                 }
 
-                if (lineString[2] == "TrkEnd")
+                if (lineString[2] == "TrkEnd" & Track>0)
                 {
                     restLength = Int32.Parse(lineString[0]);
                     if (restLength > unitaryLength) //the noise channel needs the last rest
@@ -369,7 +420,7 @@ namespace MIDI_Converter
                 }
 
                 //avoid entering the main note printer part since the lineString is shorter and the program breaks
-                if (lineString.Length < 4)
+                if (lineString.Length < 4 || Track==0)
                 {
                     continue;
                 }
@@ -378,20 +429,26 @@ namespace MIDI_Converter
                 if (lineString[3] == "c=10")
                 {
                     string[] tempString = lineString[4].Split('=');
-                    pan = Int32.Parse(tempString[1]);
+                    pan = Int32.Parse(tempString[1]);                       
                     if (pan < 43)
                     {
-                        panHex = "f0";
+                        newpanHex = "f0";
                     }
-                    if (pan > 85)
+                    else if (pan > 85)
                     {
-                        panHex = "f";
+                        newpanHex = "f";
                     }
                     else
                     {
-                        panHex = "ff";
+                        newpanHex = "ff";
                     }
-                    sw.WriteLine(string.Concat("\tstereopanning $", panHex));
+
+                    if (newpanHex != panHex)
+                    {
+                        panHex = newpanHex;
+                        sw.WriteLine(string.Concat("\tstereopanning $", panHex));
+                    }
+                    
                 }
 
                 //sets new trackvolume to define the intensity of this track. Can vary multiple times during the same music.
@@ -411,6 +468,10 @@ namespace MIDI_Converter
                         case "On":
                         {
                             restLength += tempLength;
+                            //if (flagOn)
+                            //{
+                            //    sw.WriteLine(";WARNING: Concurrent notes.");
+                            //}
                             flagOn = true;
                             if (note==-1) //prints the first rest in case it exists i.e. if the note is -1. The NotePrinter guarantees it doesn't print a 0. Also works on Track 4.
                             {
@@ -481,13 +542,6 @@ namespace MIDI_Converter
 
             Console.WriteLine();
             Console.WriteLine("Expected track length is {0}.", (double)TickSum[0]*48/TicksPerBeat);
-            
-            if (debug)
-            {
-                Console.WriteLine();
-                Console.WriteLine("Total ticks is {0}.", TickSum[0]);
-                Console.WriteLine("Ticks Per Beat is {0}.", TicksPerBeat);
-            }
             Console.WriteLine();
             End:
             Console.WriteLine("Press any key to exit...");
