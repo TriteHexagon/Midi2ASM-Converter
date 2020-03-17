@@ -47,20 +47,6 @@ This is a simple tool to convert MIDI files into [pokecrystal](https://github.co
 * Read directly from a MIDI file. I'm not planning on doing this any time soon, seeing as it works fine at the moment and it would be a ton of work to implement.
 * Loops, seeing as some MIDIs have loop information integrated.
 
-## Version History
-### 2.0 (23-Sep-2019)
-* Eliminated debug mode. I never used it and probably neither did anyone else. It just wasn't worth the effort.
-* Added two modes: TempoTrack and NoiseReplace, freely changeable in the new config.txt file.
-* TempoTrack allows to either used 4 track MIDI as before, or 5 track MIDI with the first track being used for tempo information only.
-* NoiseReplace uses placeholder notes instead of the final ones so they can be easily replaceable manually.
-* Fixed the stereopanning command printing even if not necessary.
-
-### 1.1 (9-Aug-2019)
-* Fixed the bug where long rests in the noise channel were registering as a repeat of the same previous note.
-* The *WARNING:Rounded* error appears in both the Debug and standard modes. The only difference is that only in the Debug mode the Ticks of that particular note is printed.
-* The *"WARNING:Rounded"* error now only shows up if the sum of the note + the next rest doesn't perfectly divide the current unitary length. In other words, what this means is that program gives much less warnings.
-* In Debug mode, the Ticks per Beat is printed on the .asm file.
-
 ## Can I help?
 * YES! This is, technically, my first foray into an actual programming language. As such, I guarantee that the code is awful. For that reason alone, feel free to suggest changes to make the code cleaner or suggest fixes.
 * Feel free to leave feedback wherever I might see it.
