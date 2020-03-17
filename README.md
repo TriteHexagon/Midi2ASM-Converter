@@ -53,4 +53,4 @@ If two songs are playing at the same time, the output will include junk informat
 * YES! This is, technically, my first foray into an actual programming language. As such, I guarantee that the code is awful. For that reason alone, feel free to suggest changes to make the code cleaner or suggest fixes.
 * Feel free to leave feedback wherever I might see it.
 
-> TriteHexagon. Updated on 23-Sep-2019
+> TriteHexagon. Updated on 2020-3-17
