@@ -18,7 +18,7 @@ This is a simple tool to convert MIDI files into [pokecrystal](https://github.co
 ## Settings
 * These can be changed in the config file that comes with the .zip file.
 * **TempoTrack**: If this is *true*, then your MIDI files need to have 5 different tracks; the first Track (track 0) only serves to grab the tempo of the song and will be ignored otherwise. If this option is *false*, then you MIDI file needs to have 4 tracks exactly.
-* **NoiseReplace**: If this is *true*, the noise channel's notes will be have placeholder notes instead of the usual. These are labelled X1 through XC (following the hexadecimal numbers). If this is *false* then the notes will be written like the other channels.
+* **NoiseReplace**: If this is *true*, the noise channel's notes will be have placeholder notes instead of the usual. These are labelled in the format N#H, where # is a number (an octave) and H is an hexadecimal number (from 0 to F). The console will also print the list of all these templates so you can easily find them. If this is *false* then the notes will be written like the other channels.
 * **TimeSignature**: This only affects where the Bar comments are printed. The default is 16, for the common time (4/4). If your song has another time signature, this should be changed so you can easily navigate the code. The formula to calculate the value is TS = x * 16/y, where the time signature is x/y. 8 should work for a time signature of 2/4 and 24 for a time signature of 6/4. Unfortunately this formula breaks for songs with unusual time signatures (anything other than a divisor of 16 for the y).
 * If there's no config file or otherwise the data is corrupted, then the default is TempoTrack true, NoiseReplace false and timeSignature 16.
 
