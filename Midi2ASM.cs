@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Text;
 using System.IO;
+using System.Collections.Generic;
 
 namespace MIDI_Converter
 {
@@ -35,13 +36,14 @@ namespace MIDI_Converter
         int[] LengthSum; //stores the track length in ASM units i.e. notetype * note length
         int[] TickSum; //stores the tick length
         string[] notesArray;
-        string[] noiseArray;
         string panHex;
         string newpanHex;
         bool TempoTrack;
         bool noiseReplace;
         bool warning;
         bool flagOn;
+        List<string> NoiseReplaceList = new List<string>();
+        string NoiseTemplate;
 
         public Program()
         {
@@ -67,8 +69,7 @@ namespace MIDI_Converter
             LengthSum = new int[] { 0, 0, 0, 0 };
             TickSum = new int[] { 0, 0, 0, 0 };
             notesArray = new string[] { "__", "C_", "C#", "D_", "D#", "E_", "F_", "F#", "G_", "G#", "A_", "A#", "B_" };
-            noiseArray = new string[] { "__", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "XA", "XB", "XC" };
-            allowedNotetypes = new int[] {4, 6, 8, 12 }; //the program won't do any more precise than notetype 6
+            allowedNotetypes = new int[] {4, 6, 8, 12}; //the program won't do any more precise than notetype 4
             warning = true;
         }
 
@@ -170,7 +171,12 @@ namespace MIDI_Converter
         {
             if (Track == 4 & noiseReplace) //checks if the noise replace mode is true
             {
-                sw.Write(noiseArray[notePosition]);
+                NoiseTemplate = "N" + newOctave + notePosition.ToString("X");
+                sw.Write(NoiseTemplate);
+                if (!NoiseReplaceList.Contains(NoiseTemplate))
+                {
+                    NoiseReplaceList.Add(NoiseTemplate);
+                }
             }
             else
             {
@@ -234,7 +240,7 @@ namespace MIDI_Converter
                     sw.WriteLine("\toctave {0}", newOctave); //... except in the Wave channel
                 octave = newOctave;
             }
-            //calculates note length
+            //calculates note position
             notePosition = note % 12 + 1;
 
             LengthSum[Track - 1] += noteLengthFinal * notetype;
@@ -251,7 +257,7 @@ namespace MIDI_Converter
             int pan = 0;
             string line;
 
-            Console.WriteLine("MIDI2ASM Version 2.1");
+            Console.WriteLine("MIDI2ASM Version 3.1");
             Console.WriteLine("");
 
             //Gets the current directory of the application.
@@ -322,7 +328,7 @@ namespace MIDI_Converter
 
             //Header
             sw.WriteLine(";Coverted using MIDI2ASM");
-            sw.WriteLine(";Version 3.0 (2020-3-17)");
+            sw.WriteLine(";Version 3.1 (2020-4-13)");
             sw.WriteLine(";Code by TriteHexagon");
             sw.WriteLine(";Visit github.com/TriteHexagon/Midi2ASM-Converter for up-to-date versions.");
             sw.WriteLine("");
@@ -499,7 +505,7 @@ namespace MIDI_Converter
                                     restLength += noteLength;
                                     RestWriter(sw);
                                 }
-                                else if ((restLength > unitaryLength & Track != 4) || (restLength > unitaryLength * 16)) //the noise channel only prints rests if its bigger than 16 times the UL
+                                else if ((restLength > unitaryLength & Track != 4 & noteLength != 0) || (restLength > unitaryLength * 16 & noteLength != 0)) //the noise channel only prints rests if its bigger than 16 times the UL
                                 {
                                     NoteWriter(sw);
                                     RestWriter(sw);
@@ -540,6 +546,7 @@ namespace MIDI_Converter
                                 break;
                             }
                     }
+                    
                     warning = true;
                 }
                 counter++;
@@ -564,6 +571,17 @@ namespace MIDI_Converter
             Console.WriteLine();
             Console.WriteLine("Expected track length is {0}.", (double)TickSum[0] * 48 / TicksPerBeat);
             Console.WriteLine();
+
+            if (noiseReplace)
+            {
+                Console.WriteLine("Noise Templates:");
+                NoiseReplaceList.Sort();
+                foreach (string i in NoiseReplaceList)
+                {
+                    Console.WriteLine(i);
+                }
+                Console.WriteLine();
+            }
         End:
             Console.WriteLine("Press any key to exit...");
             // Suspend the screen.  
