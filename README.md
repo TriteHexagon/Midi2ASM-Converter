@@ -41,7 +41,7 @@ If two songs are playing at the same time, the output will include junk informat
 * Open the executable and change your options in the GUI. If a message pops up, follow its instructions.
 * If the conversion was successful, a message will pop-up saying the conversion was successful.
 * You should now have a *out.asm* file in the same folder.
-* If you selected the Noise Templates option, there should be a noisetemplates.txt file in the same folder containing all noise notes detected and the templates for easy replacement.
+* If you selected the Noise Templates option, there should be a *noisetemplates.txt* file in the same folder containing all noise notes detected and the templates for easy replacement.
 * The music channels are all named *Placeholder* so you can easily replace the name with whatever you want.
 ### Manually fixing notes
 * I have 100% confidence the note conversion works correctly. However, notetype changes are really tricky to do automatically. It works most of the time, but one badly translated note duration is enough to make the tracks not sync up properly.
