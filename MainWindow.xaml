@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PokéMIDIGUI"
         mc:Ignorable="d"
-        Title="MIDI2ASM GUI v4.0" Height="400" Width="340" ResizeMode="NoResize">
+        Title="MIDI2ASM v4.0 GUI" Height="400" Width="340" ResizeMode="NoResize">
     <Border BorderThickness="5">
         <StackPanel Margin="5,0,5,0">
             <GroupBox BorderBrush="Gray">
@@ -72,12 +72,12 @@
                     </StackPanel>
                     <StackPanel Grid.Column="1" Grid.Row="0">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,1">
-                            <TextBox Name="tbP1Dutycycle" Width="20" MaxLength="2">2</TextBox>
-                            <TextBlock ToolTip="Dutycycle for Pulse 1 (0-3)." Margin="5,0,0,0">Pulse 1 Dutycycle</TextBlock>
+                            <TextBox Name="tbP1Dutycycle" Width="15" MaxLength="1">2</TextBox>
+                            <TextBlock ToolTip="Dutycycle for Pulse 1 (0-3)." Margin="5,0,0,0">Pulse 1 Duty Cycle</TextBlock>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,1">
-                            <TextBox Name="tbP2Dutycycle" Width="20" MaxLength="2">1</TextBox>
-                            <TextBlock ToolTip="Dutycycle for Pulse 2 (0-3)." Margin="5,0,0,0">Pulse 2 Dutycycle</TextBlock>
+                            <TextBox Name="tbP2Dutycycle" Width="15" MaxLength="1">1</TextBox>
+                            <TextBlock ToolTip="Dutycycle for Pulse 2 (0-3)." Margin="5,0,0,0">Pulse 2 Duty Cycle</TextBlock>
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
@@ -109,7 +109,7 @@
                         <Label FontSize="14">Other Settings</Label>
                     </GroupBox.Header>
                     <StackPanel>
-                        <CheckBox IsChecked="True" Name="cbNoiseTemplate" ToolTip="Check the box to replace all noise notes with templates for easier replacement.">Noise Templates</CheckBox>
+                        <CheckBox IsChecked="False" Name="cbNoiseTemplate" ToolTip="Check the box to replace all noise notes with templates for easier replacement.">Noise Templates</CheckBox>
                         <!--<CheckBox IsChecked="True" Name="cbRestrictTracks" ToolTip="Check the box to restrict to 4 tracks in the ASM.">Restrict to 4 Tracks</CheckBox>-->
                         <CheckBox IsChecked="True" Name="cbWarnings" ToolTip="Check the box to print various warnings in the ASM as comments.">Print Warnings</CheckBox>
                     </StackPanel>

@@ -30,7 +30,7 @@ namespace PokéMIDIGUI
 
         //Info from the GUI
         bool NoiseTemplate;
-        bool RestrictTracks;
+        bool TempoTrack;
         bool PrintWarnings;
         bool AutoSync;
         bool IgnoreRests;
@@ -46,7 +46,7 @@ namespace PokéMIDIGUI
         public Program(int Track, int BaseNotetype, int[] allowedNotetypes, bool[] GUIOptions, string[] Envelopes, int Togglenoise, int[] Dutycycles) //constructor
         {
             NoiseTemplate = GUIOptions[0];
-            RestrictTracks = GUIOptions[1];
+            TempoTrack = GUIOptions[1];
             PrintWarnings = GUIOptions[2];
             AutoSync = GUIOptions[3];
             IgnoreRests = GUIOptions[4];
@@ -121,10 +121,15 @@ namespace PokéMIDIGUI
                 //Splits the string line into multiple elements
                 string[] lineString = line.Split(' ');
 
+                if (lineString[0] == "File:")
+                {
+                    continue;
+                }
                 //finds the TicksPerBeat and the number of tracks of the MIDI file
                 if (lineString[0] == "MFile")
                 {
-                    TrackNumber = Int32.Parse(lineString[2]) - 1;
+                    if (TempoTrack) {TrackNumber = Int32.Parse(lineString[2]) - 1;}
+                    else {TrackNumber = Int32.Parse(lineString[2]);}                   
                     AllTrackList = new List<MIDINote>[TrackNumber]; //creates the AllTrackList with TrackNumber Length
                     TicksPerBeat = Int32.Parse(lineString[3]);
                     unitaryLength = Convert.ToInt32((double)TicksPerBeat / (48 / BaseNotetype));
@@ -171,7 +176,7 @@ namespace PokéMIDIGUI
                             noteLength = totalLength;
                             NoteListTemp.Add(new MIDINote(noteLength, MIDILength[Track - 1], note, pan, velocity, trackVolume));
                         }
-                        MIDILength[Track - 1] += totalLength;
+                       MIDILength[Track - 1] += totalLength;
                     }
 
                     noteLength = 0;
@@ -212,12 +217,7 @@ namespace PokéMIDIGUI
                             {
                                 restLength += tempLength;
                                 flagOn = true;
-                                if (note == -1 & restLength != 0) //prints the first rest in case it exists i.e. if the note is -1. The NoteGBPrinter guarantees it doesn't print a 0. Also works on Track 4.
-                                {
-                                    restLength += noteLength;
-                                    NoteListTemp.Add(new MIDINote(restLength, MIDILength[Track - 1], 0, pan, velocity, trackVolume));
-                                }
-                                else if ((restLength > unitaryLength & Track != 4 & noteLength != 0) || (restLength > unitaryLength * 16 & noteLength != 0)) //the noise channel only prints rests if its bigger than 16 times the UL
+                                if ((restLength > unitaryLength & Track != 4 & noteLength != 0) || (restLength > unitaryLength * 16 & noteLength != 0)) //the noise channel only prints rests if its bigger than 16 times the UL
                                 {
                                     if (IgnoreRests)
                                     {
@@ -273,7 +273,7 @@ namespace PokéMIDIGUI
             List<int> PivotLocation = new List<int>();
             int ErrorSum;
             int NewNoteDuration;
-            unitaryLength = Convert.ToInt32((double)TicksPerBeat / (48 / BaseNotetype));
+            //unitaryLength = Convert.ToInt32((double)TicksPerBeat / (48 / BaseNotetype));
             for (int i = 0; i < TrackList.Length; i++)
             {
                 //copies the contents of TrackList[i] into NoteListTemp
@@ -323,13 +323,13 @@ namespace PokéMIDIGUI
                         {
                             NoteListTemp[loco].NoteDuration = NewNoteDuration - unitaryLength;
                             ErrorSum -= unitaryLength;
-                            NoteListTemp[pi].warnings = "Rounded down!";
+                            NoteListTemp[pi].warnings = " ; Auto-Sync says: Rounded down!";
                         }
                         else if (ErrorSum <= -unitaryLength / 2)
                         {
                             NoteListTemp[loco].NoteDuration = NewNoteDuration + unitaryLength;
                             ErrorSum += unitaryLength;
-                            NoteListTemp[pi].warnings = "Rounded up!";
+                            NoteListTemp[pi].warnings = " ; Auto-Sync says: Rounded up!";
                         }
                         else
                         {
@@ -350,7 +350,8 @@ namespace PokéMIDIGUI
             StreamWriter sw = new StreamWriter(string.Concat(path, "\\out.asm"), true, Encoding.ASCII);
 
             //Header
-            sw.WriteLine(";Coverted using MIDI2ASM by TriteHexagon");
+            sw.WriteLine(";Coverted using MIDI2ASM");
+            sw.WriteLine(";Code by TriteHexagon");  
             sw.WriteLine(";Version 4.0 (17-Jun-2020)");
             sw.WriteLine(";Visit github.com/TriteHexagon/Midi2ASM-Converter for up-to-date versions.");
             sw.WriteLine("");
@@ -417,8 +418,11 @@ namespace PokéMIDIGUI
                     if (PrintingNote.octave != octave & PrintingNote.octave != -1) //doesn't change the octave for Track 3 and for rests
                     {
                         if (Track < 2) //CHANGE: make this a setting
-                            sw.WriteLine("\toctave {0}", PrintingNote.octave - 1); //the octave appears to be always 1 lower in the ASM...
-                        if (Track == 3)
+                            if (PrintingNote.octave - 1 == 0)
+                                sw.WriteLine("\toctave 1"); //prevent octave 0
+                            else
+                                sw.WriteLine("\toctave {0}", PrintingNote.octave - 1); //the octave appears to be always 1 lower in the ASM...
+                        if (Track == 2)
                             sw.WriteLine("\toctave {0}", PrintingNote.octave); //... except in the Wave channel
                         octave = PrintingNote.octave;
                     }
@@ -440,7 +444,7 @@ namespace PokéMIDIGUI
             }
 
             sw.Close();
-            MessageBox.Show("CONVERSION SUCCESSFUL!");
+            MessageBox.Show("Conversion Successful!");
 
             if (NoiseTemplate)
             {
@@ -513,6 +517,10 @@ namespace PokéMIDIGUI
                     sw.Write(" ; ");
                     sw.Write("WARNING: Rounded.");
                 }
+                if (PrintWarnings & AutoSync)
+                {
+                    sw.Write(PrintingNote.warnings);
+                }
                 sw.WriteLine("");
             }
         End:;
@@ -545,7 +553,7 @@ namespace PokéMIDIGUI
 
         public void NotetypeChange(StreamWriter sw, MIDINote PrintingNote, ref bool changedNotetypeFlag)
         {
-            int newNotetype = BaseNotetype; //always tries to change the notetype to the largest; this isn't ideal but works fine for now
+            int newNotetype = BaseNotetype; //always tries to change the notetype to the BaseNotetype; this isn't ideal but works fine for now
             unitaryLength = Convert.ToInt32((double)TicksPerBeat * newNotetype / 48);
             //checks if there's need to change the notetype i.e. if remainder of the division by the unitary length is not 0
             notetypeCheck = Convert.ToInt32((double)(PrintingNote.NoteDuration % unitaryLength));

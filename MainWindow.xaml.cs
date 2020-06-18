@@ -50,7 +50,7 @@ namespace PokéMIDIGUI
 
             bool[] GUIOptions = new bool[7];
             GUIOptions[0] = (cbNoiseTemplate.IsChecked == true);
-            //GUIOptions[1] = (cbRestrictTracks.IsChecked == true);
+            GUIOptions[1] = (cbTempoTrack.IsChecked == true);
             GUIOptions[2] = (cbWarnings.IsChecked == true);
             GUIOptions[3] = (cbAutoSync.IsChecked == true);
             GUIOptions[4] = (cbIgnoreRests.IsChecked == true); //doesn't work
@@ -61,7 +61,7 @@ namespace PokéMIDIGUI
 
             //auxiliar stuff
             int[] allNotetypes = { 12, 8, 6, 4, 3 };
-            int[] allowedNotetypes = new int[5];
+            List<int> allowedNotetypesTemp = new List<int>();
             bool?[] allowedNotetypesBool = { cbNotetype12.IsChecked, cbNotetype8.IsChecked, cbNotetype6.IsChecked, cbNotetype4.IsChecked, cbNotetype3.IsChecked };
 
             bool ABaseNotetype = false;
@@ -90,15 +90,14 @@ namespace PokéMIDIGUI
                 if (allowedNotetypesBool[i] == true)
                 {
                     BaseNotetype = allNotetypes[i];
-                    j++;
-                    allowedNotetypes[j] = allNotetypes[i];
                 }
-                else if (allowedNotetypesBool[i] == null)
+                if (allowedNotetypesBool[i] == null || allowedNotetypesBool[i] == true)
                 {
                     j++;
-                    allowedNotetypes[j] = allNotetypes[i];
+                    allowedNotetypesTemp.Add(allNotetypes[i]);
                 }
             }
+            int[] allowedNotetypes = allowedNotetypesTemp.ToArray();
 
             new Program(Track, BaseNotetype, allowedNotetypes, GUIOptions, Envelopes, Togglenoise, Dutycycles);
 
