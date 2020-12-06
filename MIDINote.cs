@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
-namespace PokéMIDIGUI
+namespace MIDI2ASMGUI
 {
     class MIDINote
     {
-        public int NoteLocation { get; set; }
-        public int NoteDuration { get; set; }
-        public int RawNote { get; set; }
+        public int NoteLocation { get; set; } //cumulative position of the note in the MIDI
+        public int NoteDuration { get; set; } //how long the note lasts in ticks
+        public int RawNote { get; set; } //number of the note as recorded in the midi
         public int octave { get; set; }
         public int intensity { get; set; }
         public int pan { get; set; }
@@ -46,7 +47,8 @@ namespace PokéMIDIGUI
 
         public void ShowNotes()
         {
-            Console.WriteLine("{0}, {1}, {2}, {3}, {4}, {5}", NoteLocation, NoteDuration, RawNote, octave, intensity, pan);
+            string line = NoteDuration + " " + NoteLocation.ToString() + " " + RawNote + " " + octave + " " + intensity + " " + pan;
+            Trace.WriteLine(line);
         }
     }
 }

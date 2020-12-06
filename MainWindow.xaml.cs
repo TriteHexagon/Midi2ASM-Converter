@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,27 +14,46 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Microsoft.Win32;
 
-namespace PokéMIDIGUI
+namespace MIDI2ASMGUI
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+        public string filePath = "";
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        public void Button_Click(object sender, RoutedEventArgs e)
+        private void LinkOnRequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            System.Diagnostics.Process.Start(e.Uri.ToString());
+        }
+
+        public void Button_SelectFile(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+            openFileDialog.Filter = "MIDI Files (*.midi; *.mid)|*.midi;*.mid";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                filePath = openFileDialog.FileName;
+            }
+        }
+
+        public void Button_Convert(object sender, RoutedEventArgs e)
         {
             // sets up all options
-            int Track = 0;
-            int BaseNotetype = 0;
+            int BaseNotetypeLocation = 0;
             string[] Envelopes = new string[3];
             int[] Dutycycles = new int[2];
             bool OptionsOKFlag = true;
+            string NotationStyle = "PCLegacy";
+            //filename = "hello";
 
             //various settings test
             EnvelopeSetting(Envelopes, ref OptionsOKFlag);
@@ -42,7 +63,12 @@ namespace PokéMIDIGUI
                 MessageBox.Show("Drumkit is invalid!");
                 OptionsOKFlag = false;
             }
-            
+            if (filePath == "")
+            {
+                MessageBox.Show("No MIDI file selected!");
+                OptionsOKFlag = false;
+            }
+
             if (!OptionsOKFlag)
             {
                 goto Error;
@@ -53,43 +79,50 @@ namespace PokéMIDIGUI
             GUIOptions[1] = (cbTempoTrack.IsChecked == true);
             GUIOptions[2] = (cbWarnings.IsChecked == true);
             GUIOptions[3] = (cbAutoSync.IsChecked == true);
-            GUIOptions[4] = (cbIgnoreRests.IsChecked == true); //doesn't work
-            //GUIOptions[5] = (rbNewNotation.IsChecked == true);
-            GUIOptions[6] = (cbCapitalizeHexadecimal.IsChecked == true);
-
-            //bool MMLNotationStyle = (rbMMLNotation.IsChecked == true); //doesn't work for now
+            GUIOptions[4] = (cbIgnoreRests.IsChecked == true);
+            GUIOptions[5] = (cbCapitalizeHexadecimal.IsChecked == true);
+            GUIOptions[6] = (cbASMName.IsChecked == true);
+            if (rbPCNew.IsChecked == true)
+            {
+                NotationStyle = "PCNew";
+            }
+            else if (rbPRPY.IsChecked == true)
+            {
+                NotationStyle = "PRPY";
+            }
 
             //auxiliar stuff
             int[] allNotetypes = { 12, 8, 6, 4, 3 };
             List<int> allowedNotetypesTemp = new List<int>();
             bool?[] allowedNotetypesBool = { cbNotetype12.IsChecked, cbNotetype8.IsChecked, cbNotetype6.IsChecked, cbNotetype4.IsChecked, cbNotetype3.IsChecked };
 
-            bool ABaseNotetype = false;
+            //makes sure one and only one notetype is checked
+            int allowedNotetypesTrueCount = 0;
             foreach (bool? ATrue in allowedNotetypesBool)
             {
                 if (ATrue == true)
                 {
-                    ABaseNotetype = true;
-                    break;
+                    allowedNotetypesTrueCount++;
                 }          
             }
-            if (!ABaseNotetype)
+            Trace.WriteLine(allowedNotetypesTrueCount);
+            if (allowedNotetypesTrueCount==0)
             {
                 MessageBox.Show("One notetype needs to be checked!");
                 goto Error;
             }
-
-            if (cbTempoTrack.IsChecked == true)
+            if (allowedNotetypesTrueCount > 1)
             {
-                Track = -1;
+                MessageBox.Show("Only one notetype can be checked (base). Use third state for other allowed notetypes.");
+                goto Error;
             }
 
+            int j = 0;
             for (int i=0; i<allNotetypes.Length; i++)
             {
-                int j=0;
                 if (allowedNotetypesBool[i] == true)
                 {
-                    BaseNotetype = allNotetypes[i];
+                    BaseNotetypeLocation = j;
                 }
                 if (allowedNotetypesBool[i] == null || allowedNotetypesBool[i] == true)
                 {
@@ -99,7 +132,7 @@ namespace PokéMIDIGUI
             }
             int[] allowedNotetypes = allowedNotetypesTemp.ToArray();
 
-            new Program(Track, BaseNotetype, allowedNotetypes, GUIOptions, Envelopes, Togglenoise, Dutycycles);
+            new Program(BaseNotetypeLocation, allowedNotetypes, GUIOptions, Envelopes, Togglenoise, Dutycycles, filePath, NotationStyle);
 
             Error:;
         }
@@ -108,17 +141,17 @@ namespace PokéMIDIGUI
         {
             if (!uint.TryParse(tbP1BaseEnvelope.Text, System.Globalization.NumberStyles.HexNumber, null, out uint Pulse1BaseEnvelope))
             {
-                MessageBox.Show("Pulse 1 envelope is not an hexadecimal.");
+                MessageBox.Show("Pulse 1 envelope is not an hexadecimal number.");
                 OptionsOKFlag = false;
             }
             if (!uint.TryParse(tbP2BaseEnvelope.Text, System.Globalization.NumberStyles.HexNumber, null, out uint Pulse2BaseEnvelope))
             {
-                MessageBox.Show("Pulse 2 envelope is not an hexadecimal.");
+                MessageBox.Show("Pulse 2 envelope is not an hexadecimal number.");
                 OptionsOKFlag = false;
             }
             if (!uint.TryParse(tbWaveBaseEnvelope.Text, System.Globalization.NumberStyles.HexNumber, null, out uint WaveBaseEnvelope))
             {
-                MessageBox.Show("Wave envelope is not an hexadecimal.");
+                MessageBox.Show("Wave envelope is not an hexadecimal number.");
                 OptionsOKFlag = false;
             }
 
