@@ -14,7 +14,7 @@ namespace MIDI2ASMGUI
         double notetypeCheck;
         int TimeDivision;
         int notetype;
-        string intensity;
+        string StringIntensity;
         int octave;
         int[] LengthSum; //stores the track length in ASM units i.e. notetype * note length
         int[] allowedNotetypes;
@@ -41,6 +41,7 @@ namespace MIDI2ASMGUI
         bool AutoSync;
         bool IgnoreRests;
         bool CapitalHex;
+        bool IgnoreIntensity;
 
         string[] Envelopes;
         int[] Dutycycles;
@@ -56,6 +57,7 @@ namespace MIDI2ASMGUI
             AutoSync = GUIOptions[3];
             IgnoreRests = GUIOptions[4];
             CapitalHex = GUIOptions[5];
+            IgnoreIntensity = GUIOptions[7];
             this.Envelopes = Envelopes;
             this.Dutycycles = Dutycycles;
 
@@ -78,7 +80,10 @@ namespace MIDI2ASMGUI
             unitaryLengthArray = new int[allowedNotetypes.Length];
             TimeDivision = 0;
             octave = -1;
-            intensity = "0";
+            if (CapitalHex)
+                StringIntensity = "A";
+            else 
+                StringIntensity = "a";
             LengthSum = new int[] { 0, 0, 0, 0 };
 
             notesArray = new string[] { "__", "C_", "C#", "D_", "D#", "E_", "F_", "F#", "G_", "G#", "A_", "A#", "B_" };
@@ -158,7 +163,7 @@ namespace MIDI2ASMGUI
             {
 
                 TrackNumber++;
-                trackVolume = 0; //resets trackvolume for the new track
+                trackVolume = 1; //resets trackvolume for the new track
 
                 //loops through events
                 foreach (MidiEvent Level2 in track.Events)
@@ -384,8 +389,8 @@ namespace MIDI2ASMGUI
         public void GBPrinter(List<MIDINote>[] TrackList)
         {
             int bar = 0;
-            int intIntensity = 0;
-            intensity = "a";
+            int intIntensity = 10;
+            StringIntensity = "a";
             notetype = allowedNotetypes[BaseNotetypeLocation];
             int noteLengthFinal;
             TrackNumber = 0; //tracknumber starts at 0 here because of indexes
@@ -394,7 +399,7 @@ namespace MIDI2ASMGUI
             //Header
             sw.WriteLine(";Coverted using MIDI2ASM");
             sw.WriteLine(";Code by TriteHexagon");  
-            sw.WriteLine(";Version 5.0 (5-Dec-2020)");
+            sw.WriteLine(";Version 5.0.1 (7-Feb-2021)");
             sw.WriteLine(";Visit github.com/TriteHexagon/Midi2ASM-Converter for up-to-date versions.");
             sw.WriteLine("");
             sw.WriteLine("; ============================================================================================================");
@@ -416,7 +421,7 @@ namespace MIDI2ASMGUI
                         sw.WriteLine("\tvolume $77");
                         sw.WriteLine("\tdutycycle ${0}", Dutycycles[0]);
                         sw.Write("\tnotetype {0}", notetype);
-                        sw.WriteLine(", ${0}{1}", intensity, Envelopes[0]);
+                        sw.WriteLine(", ${0}{1}", StringIntensity, Envelopes[0]);
                         if (Tempo != 0)
                         {
                             sw.WriteLine("\ttempo {0}", Tempo);
@@ -425,7 +430,7 @@ namespace MIDI2ASMGUI
                     case 1:
                         sw.WriteLine("\tdutycycle ${0}", Dutycycles[1]);
                         sw.Write("\tnotetype {0}", notetype);
-                        sw.WriteLine(", ${0}{1}", intensity, Envelopes[1]);
+                        sw.WriteLine(", ${0}{1}", StringIntensity, Envelopes[1]);
                         break;
                     case 2:
                         sw.Write("\tnotetype {0}", notetype);
@@ -465,7 +470,7 @@ namespace MIDI2ASMGUI
                     noteLengthFinal = Convert.ToInt32(Math.Round((double)PrintingNote.NoteDuration / unitaryLength));
 
                     //changes Octave
-                    if (PrintingNote.octave != octave & PrintingNote.octave != -1) //doesn't change the octave for TrackNumber 3 and for rests
+                    if (PrintingNote.octave != octave & PrintingNote.RawNote!=0 & TrackNumber != 3) //doesn't change the octave for TrackNumber 3 (Noise), for rests and if the previous octave is the same
                     {
                         if (TrackNumber == 2)
                         {
@@ -487,8 +492,11 @@ namespace MIDI2ASMGUI
                     }
 
                     //calculates the intensity of the note and checks if it needs to be changed
-                    IntensityChange(sw, PrintingNote, ref intIntensity, changedNotetypeFlag);
-
+                    if (!IgnoreIntensity)
+                    {
+                        IntensityChange(sw, PrintingNote, ref intIntensity, changedNotetypeFlag);
+                    }
+                    
                     LengthSum[TrackNumber] += noteLengthFinal * notetype;
 
                     //prints note
@@ -501,7 +509,7 @@ namespace MIDI2ASMGUI
 
                 TrackNumber++;
                 octave = -1;
-                intensity = "a";
+                StringIntensity = "a";
                 bar = 0;
             }
 
@@ -597,7 +605,7 @@ namespace MIDI2ASMGUI
                 }
                 else
                 {
-                    NoiseTemplateString = "N" + octave + PrintingNote.RawNote.ToString("X");
+                    NoiseTemplateString = "N" + PrintingNote.octave + PrintingNote.RawNote.ToString("X");
                 }
                 sw.Write(NoiseTemplateString);
                 if (!NoiseReplaceList.Contains(NoiseTemplateString) & NoiseTemplateString != "__")
@@ -613,7 +621,7 @@ namespace MIDI2ASMGUI
 
         public void NotetypeChange(StreamWriter sw, MIDINote PrintingNote, ref bool changedNotetypeFlag)
         {
-            int newNotetype = allowedNotetypes[BaseNotetypeLocation]; //always tries to change the notetype to the BaseNotetype; this isn't ideal but works fine for now
+            int newNotetype = allowedNotetypes[BaseNotetypeLocation];
             unitaryLength = Convert.ToInt32((double)TimeDivision * newNotetype / 48);
             //checks if there's need to change the notetype i.e. if remainder of the division by the unitary length is not 0
             notetypeCheck = Convert.ToInt32((double)(PrintingNote.NoteDuration % unitaryLength));
@@ -632,11 +640,11 @@ namespace MIDI2ASMGUI
                 sw.Write("\tnotetype {0}", notetype);
                 if (TrackNumber < 2)
                 {
-                    sw.WriteLine(", ${0}7", intensity);
+                    sw.WriteLine(", ${0}7", StringIntensity);
                 }
                 else if (TrackNumber == 2) //wave channel
                 {
-                    sw.WriteLine(", ${0}0", intensity);
+                    sw.WriteLine(", ${0}0", StringIntensity);
                 }
                 else
                 {
@@ -649,8 +657,12 @@ namespace MIDI2ASMGUI
 
         public void IntensityChange(StreamWriter sw, MIDINote PrintingNote, ref int intIntensity, bool changedNotetypeFlag)
         {
-            string hexIntensity;
-            intIntensity = PrintingNote.intensity / 1075;
+            string hexIntensity ;
+            intIntensity = PrintingNote.intensity;
+
+            if (intIntensity == 0) //failsafe to prevent intensity 0 and repeated intensities
+                intIntensity = 10;
+
             if (TrackNumber == 2)
             {
                 if (intIntensity < 4)
@@ -664,16 +676,16 @@ namespace MIDI2ASMGUI
                 hexIntensity = intIntensity.ToString("X"); //converts intensity value into hexadecimal
             else
                 hexIntensity = intIntensity.ToString("x"); //converts intensity value into hexadecimal
-  
-            if (TrackNumber < 3 & hexIntensity != intensity) //doesn't calculate the intensity for TrackNumber 4 and if it doesn't need to be changed
+
+            if (TrackNumber < 3 & hexIntensity != StringIntensity) //doesn't calculate the intensity for TrackNumber 4 and if it doesn't need to be changed
             {
-                intensity = hexIntensity;
-                if (intensity == "0")
-                    intensity = "a";
+                StringIntensity = hexIntensity;
+                if (StringIntensity == "0")
+                    StringIntensity = "a";
                 if (!changedNotetypeFlag)
                 {
                     sw.Write("\tintensity $");
-                    sw.Write(intensity);
+                    sw.Write(StringIntensity);
                     if (TrackNumber == 0)
                         sw.WriteLine(Envelopes[0]);
                     else if (TrackNumber == 1)
@@ -952,24 +964,6 @@ namespace MIDI2ASMGUI
             fileReader.Close();
             tempFileWriter.Close();
             File.Delete(path);
-
-            ////copy file to new
-            //StreamReader tempFileReader = new System.IO.StreamReader(altPath);
-            //StreamWriter newFileWriter = new StreamWriter(path, true, Encoding.ASCII);
-
-            //if (File.Exists(path))
-            //{
-            //    FileStream fileStream = File.Open(path, FileMode.Open);
-            //    fileStream.SetLength(0);
-            //    fileStream.Close();
-            //}
-
-            //while ((line = tempFileReader.ReadLine()) != null)
-            //{
-            //    newFileWriter.WriteLine(line);
-            //}
-            //tempFileReader.Close();
-            //newFileWriter.Close();
         }
     }
 }

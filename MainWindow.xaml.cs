@@ -74,7 +74,7 @@ namespace MIDI2ASMGUI
                 goto Error;
             }          
 
-            bool[] GUIOptions = new bool[7];
+            bool[] GUIOptions = new bool[8];
             GUIOptions[0] = (cbNoiseTemplate.IsChecked == true);
             GUIOptions[1] = (cbTempoTrack.IsChecked == true);
             GUIOptions[2] = (cbWarnings.IsChecked == true);
@@ -82,6 +82,7 @@ namespace MIDI2ASMGUI
             GUIOptions[4] = (cbIgnoreRests.IsChecked == true);
             GUIOptions[5] = (cbCapitalizeHexadecimal.IsChecked == true);
             GUIOptions[6] = (cbASMName.IsChecked == true);
+            GUIOptions[7] = (cbIgnoreVolume.IsChecked == true);
             if (rbPCNew.IsChecked == true)
             {
                 NotationStyle = "PCNew";

@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="MIDI2ASM v5.0" Height="410" Width="340" ResizeMode="CanMinimize">
+        Title="MIDI2ASM v5.0.1" Height="420" Width="340" ResizeMode="CanMinimize">
     <Border BorderThickness="5">
         <StackPanel Margin="5,0,5,0">
             <GroupBox BorderBrush="Gray">
@@ -22,6 +22,7 @@
                             <CheckBox Grid.Column="0" Grid.Row="0" IsChecked="True" Name="cbAutoSync" ToolTip="Forces all notes to round to the chosen base notetype (checked) and self-corrects deviations.">Auto-Sync</CheckBox>
                             <CheckBox Grid.Column="0" Grid.Row="1" Name="cbIgnoreRests" ToolTip="Ignores all rests, prolonging the previous note.">Ignore Rests</CheckBox>
                             <CheckBox Grid.Column="0" Grid.Row="2" IsChecked="True" Name="cbTempoTrack" ToolTip="Check the box to ignore the contents of the first track of the MIDI, AKA the tempo track.">Ignore First Track</CheckBox>
+                            <CheckBox Grid.Column="0" Grid.Row="3" Name="cbIgnoreVolume" ToolTip="Check the box to ignore all volume information.">Ignore Note Volume</CheckBox>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="0,0,0,0">
                             <TextBlock FontWeight="DemiBold">Notation Style:</TextBlock>

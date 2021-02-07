@@ -31,7 +31,11 @@ namespace MIDI2ASMGUI
             {
                 this.RawNote = RawNote % 12 + 1;
             }
-            intensity = TrackVolume * velocity; // divide by 1075 to get the GB intensity
+
+            if (TrackVolume == 1)
+                intensity = (int)(TrackVolume * velocity / 8.3); // divide by 1075 to get the GB intensity
+            else 
+                intensity = (TrackVolume * velocity) / 1075; // divide by 1075 to get the GB intensity
         }
 
         public MIDINote(MIDINote Copy)
