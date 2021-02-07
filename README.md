@@ -1,6 +1,8 @@
 # Midi2ASM Converter
 This is a simple tool to convert MIDI files to [pokecrystal](https://github.com/pret/pokecrystal)-based and [pokered](https://github.com/pret/pokered)-based music, written in C#. As someone who's already [knee-deep into making chiptune music](https://soundcloud.com/user-930339535/sets/all-demixes) using the pokecrystal, I know how important the current tool made by FroggestSpirit is and also how frustrating it can be to arrange some songs using it. It was a good first step, but I felt I could write my own tool and fix the current problems with it, including the annoying fact that its output format is no longer supported, and add new features as well.
 
+It uses [DryWetMidi](https://github.com/melanchall/drywetmidi) for the midi-processing logic.
+
 ## Features
 * Converts the notes in the MIDI file into the note commands used in pokecrystal in an .asm file.
 * Support for legacy and new pokecrystal commands, and pokered/pokeyellow commands.
@@ -18,15 +20,16 @@ This is a simple tool to convert MIDI files to [pokecrystal](https://github.com/
 ## The GUI
 Everything has a tooltip so it should be self-explanatory enough, but I'll go over some of the most complex options.
 
-* **Auto-Sync**: This option forces tracks to sync to the chosen notetype by maintaining a "ledger" of all the roundings being done to the note lengths; when the rounding exceeds a certain threshold, the next note is forced to round down or up to fit with the grid. This thus **guarantees all tracks will sync globally**. However, since some notes are forcibly cut short or prolonged, there might be occasional notes that have the wrong lengths or get their length set to 0 (especially if they are very short). The code requires a certain notetype to be chosen as the "base" for which all notes are rounded to (this is the checked notetype on the list).
-If you're unsure which notetype is the best, for 95% of the cases 12 is the ideal option, but there can be certain songs or parts that require other notetypes. You can try using 6 and 3 for parts with very short notes, and 8 or 4 for sections with triplets. Smaller notetypes might lead to a more accurate translation, but it will also lead to longer code. A major downside to using Auto-Sync is that it will "eat up" notes that don't fit (triplets and short notes specifically). You can allow other notetypes (more on that on the next section) which detects these notes, but this may lead to *too many* notes using these notetypes, so I don't recommend it.
+* **Auto-Sync**: This option forces tracks to sync to the chosen notetype by maintaining a "ledger" of all the roundings being done to the note lengths; when the rounding exceeds a certain threshold, the next note is forced to round down or up to fit with the "grid". This thus **guarantees all tracks will sync globally**. However, since some notes are forcibly cut short or prolonged, there might be occasional notes that have the wrong lengths or get their length set to 0 (especially if they are very short). The code requires a certain notetype to be chosen as the "base" for which all notes are rounded to (this is the checked notetype on the list).
+
+If you're unsure which notetype is the best, for 95% of the cases 12 is the ideal option, but there can be certain songs or parts that require other notetypes. You can try using 6 and 3 for parts with very short notes, and 8 or 4 for sections with triplets. Smaller notetypes might lead to a more accurate translation, but it will also lead to longer code. A major downside to using Auto-Sync is that it will "eat up" notes that don't fit with the "grid" (triplets and short notes most of the time). You can allow other notetypes (more on that on the next section) which detects these notes, but this may lead to *too many* notes using these notetypes, and thus longer code.
 Nevertheless, **this is the recommended option** unless you know what you're doing.
 * **Allowed Notetypes**: This is the list of notetypes that are accepted by the program. *Checked* means it's considered a base notetype and the program always tries to round notes to fit this notetype. A *square* means the notetype is allowed but not as the base; essentially, only when notes fall exactly to the expected length does the program change the notetype.
 * **Ignore First Track**: If this is *checked*, then your MIDI files need to have 5 different tracks; the first Track (track 0) only serves to grab the tempo of the song and will be ignored otherwise. If this option is *unchecked*, then you MIDI file needs to have 4 tracks exactly.
 * **Noise Templates**: If this is *checked*, the noise channel's notes will be have placeholder notes instead of the usual; for this reason these files will not work directly. These notes are labelled in the format N#H, where # is a number (an octave) and H is an hexadecimal number (from 0 to F). This option also creates a text file in the same directory with the various templates used in the file. If this is *unchecked* then the notes will be written like the other channels.
 
 ## Instructions
-* Download the .zip file in the releases. It contains the executable and a bunch of other files I don't know what to do with.
+* Download one of the .exe file in the releases. x64 is for 64-bit machines, x86 is for 32-bit machines. If you don't know what that means, the x86 version should work anywhere.
 * The following instructions won't go into how to put custom music into pokecrystal / pokered. If you don't know how to do it, you can follow [this guide](https://github.com/pret/pokecrystal/wiki/Add-a-new-music-song).
 #### Prepare your MIDI
 * The MIDI needs to be have precisely 5 or 4 tracks, depending on whether you decide to ignore first track or not. The order of the other tracks is Pulse 1, Pulse 2, Wave and Noise. I recommend using AnvilStudio to delete and rearrange the tracks and MIDIEditor to switch notes between tracks if needed.
@@ -48,4 +51,4 @@ If two songs are playing at the same time, the output will include junk informat
 ## Can I help?
 * Feel free to leave feedback wherever I might see it.
 
-> TriteHexagon. Updated on 2020-10-06
+> TriteHexagon. Updated on 2021-02-07
