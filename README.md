@@ -1,7 +1,7 @@
 # Midi2ASM Converter
 This is a simple tool to convert MIDI files to [pokecrystal](https://github.com/pret/pokecrystal)-based and [pokered](https://github.com/pret/pokered)-based music, written in C#. As someone who's already [knee-deep into making chiptune music](https://soundcloud.com/user-930339535/sets/all-demixes) using the pokecrystal, I know how important the current tool made by FroggestSpirit is and also how frustrating it can be to arrange some songs using it. It was a good first step, but I felt I could write my own tool and fix the current problems with it, including the annoying fact that its output format is no longer supported, and add new features as well.
 
-It uses [DryWetMidi](https://github.com/melanchall/drywetmidi) for the midi-processing logic.
+It uses [DryWetMidi](https://github.com/melanchall/drywetmidi) for the MIDI-processing logic.
 
 ## Features
 * Converts the notes in the MIDI file into the note commands used in pokecrystal in an .asm file.
