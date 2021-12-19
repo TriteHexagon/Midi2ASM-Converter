@@ -3,6 +3,8 @@ This is a simple tool to convert MIDI files to [pokecrystal](https://github.com/
 
 It uses [DryWetMidi](https://github.com/melanchall/drywetmidi) for the MIDI-processing logic.
 
+**NOTE:** This program is still in beta and I'm not a professional programmer. **Weird bugs might happen!** Please leave a issue report so I can help you fix them. There's a list of known bugs below which I either can't fix or don't know how to.
+
 ## Features
 * Converts the notes in the MIDI file into the note commands used in pokecrystal in an .asm file.
 * Support for legacy and new pokecrystal commands, and pokered/pokeyellow commands.
@@ -48,7 +50,10 @@ If two songs are playing at the same time, the output will include junk informat
 * Expand the program to include global manipulation of the finished code, such as increase overall intensity for a certain channel.
 * Loops, seeing as some MIDIs have loop information integrated.
 
+## Known Bugs & Issues
+* When using the 5 track option, if the first track (the tempo track) isn't totally clear of any notes, the program WILL crash. I've tried to fix it but I don't know what the issue is - I'll get back to it someday. If you clear the first track of all notes, it should work.
+
 ## Can I help?
 * Feel free to leave feedback wherever I might see it.
 
-> TriteHexagon. Updated on 2021-02-07
+> TriteHexagon. Updated on 2021-12-19
