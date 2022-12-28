@@ -42,15 +42,22 @@ namespace MIDI2ASMGUI
         bool IgnoreRests;
         bool CapitalHex;
         bool IgnoreIntensity;
+        bool RawMIDI;
+        bool DebugFlag;
+        bool ForceTimeSignature;
 
         string[] Envelopes;
         int[] Dutycycles;
+        int[] TimeSignatureOverride;
         int TrackNumber = 0;
         int BaseNotetypeLocation;
         int Togglenoise;
 
-        public Program(int BaseNotetypeLocation, int[] allowedNotetypes, bool[] GUIOptions, string[] Envelopes, int Togglenoise, int[] Dutycycles, string filePath, string NotationStyle) //constructor
+        public Program(int BaseNotetypeLocation, int[] allowedNotetypes, bool[] GUIOptions, string[] Envelopes, int Togglenoise, int[] Dutycycles, int[] TimeSignatureOverride, string filePath, string NotationStyle) //constructor
         {
+            RawMIDI = false; //should come from the GUI!
+            DebugFlag = false;
+
             NoiseTemplate = GUIOptions[0];
             TempoTrack = GUIOptions[1];
             PrintWarnings = GUIOptions[2];
@@ -58,9 +65,14 @@ namespace MIDI2ASMGUI
             IgnoreRests = GUIOptions[4];
             CapitalHex = GUIOptions[5];
             IgnoreIntensity = GUIOptions[7];
+            ForceTimeSignature = false;
             this.Envelopes = Envelopes;
             this.Dutycycles = Dutycycles;
-
+            this.TimeSignatureOverride = TimeSignatureOverride;
+            if (TimeSignatureOverride[0] != 0 & TimeSignatureOverride[1] != 0)
+            {
+                ForceTimeSignature = true;
+            }
             this.BaseNotetypeLocation = BaseNotetypeLocation;
             this.allowedNotetypes = allowedNotetypes;
             this.Togglenoise = Togglenoise;
@@ -98,6 +110,14 @@ namespace MIDI2ASMGUI
             //    goto SkipConvertion;
             //}
 
+            //checks if the out.asm file already exists and clears its contents
+            if (File.Exists(string.Concat(directoryPath, ASMFileName, ".asm")))
+            {
+                FileStream fileStream = File.Open(string.Concat(directoryPath, ASMFileName, ".asm"), FileMode.Open);
+                fileStream.SetLength(0);
+                fileStream.Close();
+            }
+
             Extractor();
 
             if (AutoSync)
@@ -127,14 +147,6 @@ namespace MIDI2ASMGUI
             bool flagNote = false;
             int[] MIDILength = new int[] { 0, 0, 0, 0 };
 
-            //checks if the out.asm file already exists and clears its contents
-            if (File.Exists(string.Concat(directoryPath, ASMFileName,".asm")))
-            {
-                FileStream fileStream = File.Open(string.Concat(directoryPath, ASMFileName, ".asm"), FileMode.Open);
-                fileStream.SetLength(0);
-                fileStream.Close();
-            }
-
             var midifile = MidiFile.Read(directoryPath + midiFileName + "." + midiFileExtension);
             var trackChuncks = midifile.GetTrackChunks(); // contains the information for all tracks
 
@@ -159,16 +171,24 @@ namespace MIDI2ASMGUI
 
             AllTrackList = new List<MIDINote>[NumberOfTracks]; //creates the AllTrackList with NumberOfTracks Length
             // Reads each track in sequence
+
             foreach (var track in trackChuncks)
             {
-
                 TrackNumber++;
+                //if (TrackNumber <= 0)
+                   // goto SkippedTrack;
                 trackVolume = 1; //resets trackvolume for the new track
 
                 //loops through events
                 foreach (MidiEvent Level2 in track.Events)
                 {
-                    //get the Delta Time of the event
+                    if (RawMIDI)
+                    {
+                        //get the Delta Time of the event
+                        Trace.Write(Level2.DeltaTime);
+                        Trace.Write(" - ");
+                        Trace.WriteLine(Level2);
+                    }
                     tempLength = (int)Level2.DeltaTime;
                     totalLength = noteLength + tempLength + restLength;
 
@@ -192,8 +212,17 @@ namespace MIDI2ASMGUI
                         //only relevant for the first track
                         case "TimeSignature":
                             {
-                                TimeSignatureEvent TempEvent = (TimeSignatureEvent)Level2;
-                                timeSignature = TempEvent.Numerator * 16 / TempEvent.Denominator;
+                                if (!ForceTimeSignature)
+                                {
+                                    TimeSignatureEvent TempEvent = (TimeSignatureEvent)Level2;
+                                    timeSignature = TempEvent.Numerator * 16 / TempEvent.Denominator;
+                                    Trace.WriteLine("time signature numerator " + TempEvent.Numerator);
+                                    Trace.WriteLine("time signature denominator " + TempEvent.Denominator);
+                                }
+                                else
+                                {
+                                    timeSignature = TimeSignatureOverride[0] * 16 / TimeSignatureOverride[1];
+                                }
                                 break;
                             }
                         case "SetTempo":
@@ -216,19 +245,23 @@ namespace MIDI2ASMGUI
                                     {
                                         NoteListTemp.Add(new MIDINote(noteLength + restLength, MIDILength[TrackNumber - 1], note, pan, velocity, trackVolume));
                                     }
+                                    else if (noteLength==0)
+                                    {
+                                        NoteListTemp.Add(new MIDINote(restLength, MIDILength[TrackNumber - 1], note, pan, velocity, trackVolume));
+
+                                    }
                                     else
                                     {
                                         NoteListTemp.Add(new MIDINote(noteLength, MIDILength[TrackNumber - 1], note, pan, velocity, trackVolume));
                                         NoteListTemp.Add(new MIDINote(restLength, MIDILength[TrackNumber - 1] + noteLength, 0, pan, velocity, trackVolume));
+
                                     }
                                 }
                                 else
                                 {
                                     NoteListTemp.Add(new MIDINote(totalLength, MIDILength[TrackNumber - 1], note, pan, velocity, trackVolume));
                                 }
-
-                                //i++; //debug
-                                //NoteListTemp.ElementAt(i-1).ShowNotes(); //debug
+                              
 
                                 MIDILength[TrackNumber - 1] += totalLength;
                                 noteLength = restLength = tempLength = totalLength = 0;
@@ -261,15 +294,26 @@ namespace MIDI2ASMGUI
                     flagNote = false;
                 }
 
+
                 //last note print
                 if (TrackNumber > 0)
                 {
                     NoteListTemp.Add(new MIDINote(totalLength, MIDILength[TrackNumber - 1], note, pan, velocity, trackVolume));
                 }
 
+                //debug
+                if (DebugFlag)
+                {
+                    foreach (MIDINote MIDINote in NoteListTemp)
+                    {
+                        MIDINote.ShowNotes();
+                    }
+                }
+
                 //We've reached the end of the track
                 noteLength = restLength = totalLength = 0;
                 note = -1;
+
 
                 if(TrackNumber>0)
                 {
@@ -280,6 +324,7 @@ namespace MIDI2ASMGUI
                     //}
                     NoteListTemp.Clear();
                 }
+            //SkippedTrack:;
             }
         }
 
@@ -399,7 +444,7 @@ namespace MIDI2ASMGUI
             //Header
             sw.WriteLine(";Coverted using MIDI2ASM");
             sw.WriteLine(";Code by TriteHexagon");  
-            sw.WriteLine(";Version 5.0.1 (7-Feb-2021)");
+            sw.WriteLine(";Version 5.2.0 (16-Nov-2022)");
             sw.WriteLine(";Visit github.com/TriteHexagon/Midi2ASM-Converter for up-to-date versions.");
             sw.WriteLine("");
             sw.WriteLine("; ============================================================================================================");

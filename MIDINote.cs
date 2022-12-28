@@ -51,7 +51,7 @@ namespace MIDI2ASMGUI
 
         public void ShowNotes()
         {
-            string line = NoteDuration + " " + NoteLocation.ToString() + " " + RawNote + " " + octave + " " + intensity + " " + pan;
+            string line = "duration: " + NoteDuration + " | location: " + NoteLocation.ToString() + " | rawnote: " + RawNote + " | octave: " + octave + " | intensity: " + intensity + " | pan: " + pan;
             Trace.WriteLine(line);
         }
     }

@@ -50,13 +50,15 @@ namespace MIDI2ASMGUI
             // sets up all options
             int BaseNotetypeLocation = 0;
             string[] Envelopes = new string[3];
+            int[] TimeSignatureOverride = new int[2];
             int[] Dutycycles = new int[2];
             bool OptionsOKFlag = true;
             string NotationStyle = "PCLegacy";
             //filename = "hello";
 
-            //various settings test
+            //various settings test (different functions)
             EnvelopeSetting(Envelopes, ref OptionsOKFlag);
+            TimeSignatureSetting(TimeSignatureOverride, ref OptionsOKFlag);
             CheckDutycycles(Dutycycles, ref OptionsOKFlag);
             if (!Int32.TryParse(tbToggleNoise.Text, out int Togglenoise) || Togglenoise < 1)
             {
@@ -90,7 +92,7 @@ namespace MIDI2ASMGUI
             else if (rbPRPY.IsChecked == true)
             {
                 NotationStyle = "PRPY";
-            }
+            }  
 
             //auxiliar stuff
             int[] allNotetypes = { 12, 8, 6, 4, 3 };
@@ -106,7 +108,6 @@ namespace MIDI2ASMGUI
                     allowedNotetypesTrueCount++;
                 }          
             }
-            Trace.WriteLine(allowedNotetypesTrueCount);
             if (allowedNotetypesTrueCount==0)
             {
                 MessageBox.Show("One notetype needs to be checked!");
@@ -133,7 +134,7 @@ namespace MIDI2ASMGUI
             }
             int[] allowedNotetypes = allowedNotetypesTemp.ToArray();
 
-            new Program(BaseNotetypeLocation, allowedNotetypes, GUIOptions, Envelopes, Togglenoise, Dutycycles, filePath, NotationStyle);
+            new Program(BaseNotetypeLocation, allowedNotetypes, GUIOptions, Envelopes, Togglenoise, Dutycycles, TimeSignatureOverride, filePath, NotationStyle);
 
             Error:;
         }
@@ -156,7 +157,7 @@ namespace MIDI2ASMGUI
                 OptionsOKFlag = false;
             }
 
-            if(Pulse1BaseEnvelope > 0xf)
+            if (Pulse1BaseEnvelope > 0xf)
             {
                 MessageBox.Show("Pulse 1 envelope is greater than f.");
                 OptionsOKFlag = false;
@@ -187,6 +188,34 @@ namespace MIDI2ASMGUI
                     Envelopes[2] = WaveBaseEnvelope.ToString("x");
                 }
             }
+        }
+
+        public void TimeSignatureSetting(int[] TimeSignatureOverride, ref bool OptionsOKFlag)
+        {
+            if (tbTimeSigNum.Text=="" & tbTimeSigDem.Text=="")
+            {
+                TimeSignatureOverride[0] = 0;
+                TimeSignatureOverride[1] = 0;
+                goto TSEnd;
+            }
+            //checks if the time signature numbers are numbers
+            if (!int.TryParse(tbTimeSigNum.Text, out int TimeSignatureNum))
+            {
+                MessageBox.Show("Time Signature numerator is not a number.");
+                OptionsOKFlag = false;
+            }
+            if (!int.TryParse(tbTimeSigDem.Text, out int TimeSignatureDem))
+            {
+                MessageBox.Show("Time Signature denominator is not a number.");
+                OptionsOKFlag = false;
+            }
+
+            if (OptionsOKFlag)
+            {
+                TimeSignatureOverride[0] = TimeSignatureNum;
+                TimeSignatureOverride[1] = TimeSignatureDem;
+            }
+        TSEnd:;
         }
 
         public void CheckDutycycles(int[] Dutycycles, ref bool OptionsOKFlag)
